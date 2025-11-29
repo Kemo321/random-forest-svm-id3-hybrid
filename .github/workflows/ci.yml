@@ -32,9 +32,9 @@ jobs:
 
       - name: Run tests
         env:
-          PYTHONPATH: src/lib
+          PYTHONPATH: src/core
         run: |
-          python -m pytest -q src/lib/tests
+          python -m pytest -q src/core/tests
 
       - name: Lint (flake8)
         run: |
