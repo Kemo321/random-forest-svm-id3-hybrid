@@ -1,4 +1,4 @@
-from lib.models.HybridSVMForest import HybridSVMForest
+from core.models.HybridSVMForest import HybridSVMForest
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
