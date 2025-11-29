@@ -1,4 +1,4 @@
-from TreeNode import TreeNode
+from .TreeNode import TreeNode
 import numpy as np
 from typing import List
 
