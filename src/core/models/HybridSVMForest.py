@@ -1,5 +1,5 @@
 from .ID3Classifier import ID3Classifier
-import sklearn.svm as svm
+from sklearn.svm import LinearSVC
 import numpy as np
 from typing import Optional
 
@@ -18,14 +18,14 @@ class HybridSVMForest():
         self.C = C
         self.random_state = random_state
         self.models = []
-        self._classes = None
+        self._classes_array = None
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> 'HybridSVMForest':
         """
         Trains the ensemble by creating bootstrap samples and training either SVM or ID3 models.
         """
         self.models = []
-        self.classes = np.unique(y)
+        self._classes_array = np.unique(y)
 
         rng = np.random.default_rng(self.random_state)
         n_samples = X.shape[0]
@@ -37,7 +37,12 @@ class HybridSVMForest():
             y_sample = y[indices]
 
             if rng.random() < self.p_svm:
-                model = svm.SVC(C=self.C, probability=False, random_state=self.random_state)
+                model = LinearSVC(
+                    C=self.C,
+                    random_state=self.random_state,
+                    dual=False,
+                    max_iter=2000
+                )
             else:
                 model = ID3Classifier()
 
@@ -51,15 +56,26 @@ class HybridSVMForest():
         Predicts class labels for X using majority voting from all trained base estimators.
         """
 
-        if not self.models:
+        if not self._models:
             raise Exception("The model has not been trained yet. Please call 'fit' before 'predict'.")
 
-        predictions = np.array([model.predict(X) for model in self.models])
+        predictions = np.array([model.predict(X) for model in self._models])
         final_predictions = []
+
+        most_common_class = self._classes_array[0]
 
         for i in range(X.shape[0]):
             votes = predictions[:, i]
-            counts = np.bincount(votes, minlength=len(self.classes))
+
+            # Handle any None predictions by replacing them with the most common class
+            votes_clean = np.array([v if v is not None else most_common_class for v in votes])
+
+            try:
+                votes_int = votes_clean.astype(np.int64)
+            except ValueError as e:
+                raise TypeError("Predicted class labels must be convertible to integers for majority voting.") from e
+
+            counts = np.bincount(votes_int, minlength=len(self._classes_array))
             final_predictions.append(np.argmax(counts))
 
         return np.array(final_predictions)

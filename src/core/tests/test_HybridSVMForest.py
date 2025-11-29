@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from unittest.mock import MagicMock
-from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
 from src.core.models.HybridSVMForest import HybridSVMForest
 from src.core.models.ID3Classifier import ID3Classifier
 
@@ -18,7 +18,7 @@ class TestHybridSVMForest:
         assert forest.C == 1.0
         assert forest.random_state == 42
         assert forest.models == []
-        assert forest._classes is None
+        assert forest._classes_array is None
 
     def test_fit_populates_models(self):
         X = np.array([[1, 2], [3, 4], [5, 6]])
@@ -28,8 +28,8 @@ class TestHybridSVMForest:
         forest.fit(X, y)
 
         assert len(forest.models) == 3
-        assert forest.classes is not None
-        np.testing.assert_array_equal(forest.classes, np.unique(y))
+        assert forest._classes_array is not None
+        np.testing.assert_array_equal(forest._classes_array, np.unique(y))
 
     def test_fit_only_svm(self):
         X = np.array([[1, 2], [3, 4]])
@@ -39,7 +39,7 @@ class TestHybridSVMForest:
         forest.fit(X, y)
 
         for model in forest.models:
-            assert isinstance(model, SVC)
+            assert isinstance(model, LinearSVC)
             assert model.C == 1.0
 
     def test_fit_only_id3(self):
@@ -60,7 +60,7 @@ class TestHybridSVMForest:
 
     def test_predict_majority_voting_logic(self):
         forest = HybridSVMForest(n_estimators=3)
-        forest.classes = np.array([0, 1])
+        forest._classes_array = np.array([0, 1])
 
         model1 = MagicMock()
         model1.predict.return_value = np.array([0, 1, 0])
