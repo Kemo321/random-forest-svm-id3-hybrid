@@ -50,6 +50,7 @@ class DataLoader:
             except FileNotFoundError:
                 raise Exception("File mushroom.csv not found locally and OpenML is unavailable.")
 
+        df = df.astype('object')
         df = df.replace('?', 'missing')
         df = df.fillna('missing')
 
