@@ -43,21 +43,25 @@ class ID3Classifier():
         return initial_entropy - weighted_entropy
 
     def _build_tree(self, X: np.ndarray, y: np.ndarray, available_features: List[int]) -> TreeNode:
+        # Compute majority label for this subset (for defaults/unseen)
+        if len(y) == 0:
+            return TreeNode(value=None, is_leaf=True, default_value=None)  # Edge case, empty subset
+        majority_label = np.bincount(y).argmax()
+
         # If all labels are the same, create a leaf node
         if len(np.unique(y)) == 1:
-            return TreeNode(value=y[0], is_leaf=True)
+            return TreeNode(value=y[0], is_leaf=True, default_value=y[0])
 
         # If no features are left, create a leaf node with the most common label
         if not available_features:
-            most_common_label = np.bincount(y).argmax()
-            return TreeNode(value=most_common_label, is_leaf=True)
+            return TreeNode(value=majority_label, is_leaf=True, default_value=majority_label)
 
         # Find the best feature to split on
         gains = [self._information_gain(X, y, feature) for feature in available_features]
         best_feature = available_features[np.argmax(gains)]
 
         # Create a root node for the current subtree
-        root = TreeNode(feature_index=best_feature)
+        root = TreeNode(feature_index=best_feature, default_value=majority_label)
 
         # Split the data by the best feature
         for value in np.unique(X[:, best_feature]):
@@ -65,7 +69,6 @@ class ID3Classifier():
             subset_X = X[subset_indices]
             subset_y = y[subset_indices]
 
-            # Recursively build the subtree for the split data
             child_node = self._build_tree(subset_X, subset_y, [f for f in available_features if f != best_feature])
             root.children[value] = child_node
 

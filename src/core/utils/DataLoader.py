@@ -50,6 +50,9 @@ class DataLoader:
             except FileNotFoundError:
                 raise Exception("File mushroom.csv not found locally and OpenML is unavailable.")
 
+        df = df.replace('?', 'missing')
+        df = df.fillna('missing')
+
         if 'class' in df.columns:
             y_raw = df['class'].values
             X_raw = df.drop('class', axis=1).values

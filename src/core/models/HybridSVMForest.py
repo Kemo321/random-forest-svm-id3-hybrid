@@ -69,6 +69,8 @@ class HybridSVMForest():
 
         for i in range(X[0].shape[0]):
             votes = predictions[:, i]
+            if any(v is None for v in votes):
+                print("Warning: None value found in predictions for sample index", i)
 
             votes_clean = np.array([v if v is not None else most_common_class for v in votes])
 

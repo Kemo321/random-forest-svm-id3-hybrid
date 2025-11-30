@@ -7,11 +7,19 @@ class TreeNode:
     Represents a single node in the ID3 decision tree structure.
     """
 
-    def __init__(self, feature_index: Optional[int] = None, children: Optional[Dict[Any, 'TreeNode']] = None, value: Optional[Any] = None, is_leaf: bool = False):
+    def __init__(
+            self, 
+            feature_index: Optional[int] = None,
+            children: Optional[Dict[Any, 'TreeNode']] = None,
+            value: Optional[Any] = None, 
+            is_leaf: bool = False,
+            default_value: Optional[Any] = None
+        ):
         self._feature_index = feature_index
         self._children = children if children is not None else {}
         self._value = value
         self._is_leaf = is_leaf
+        self._default_value = default_value
 
     def predict(self, sample: np.ndarray) -> Any:
 
@@ -25,7 +33,7 @@ class TreeNode:
 
         # If no child node exists for the feature value, return None
         if child_node is None:
-            return None
+            return self._default_value
 
         return child_node.predict(sample)
 
@@ -64,6 +72,14 @@ class TreeNode:
     @value.deleter
     def value(self):
         self._value = None
+
+    @property
+    def default_value(self) -> Optional[Any]:
+        return self._default_value
+    
+    @default_value.setter
+    def default_value(self, value: Any):
+        self._default_value = value
 
     def is_leaf(self) -> bool:
         return self._is_leaf
