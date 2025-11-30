@@ -9,22 +9,13 @@ class ID3Classifier():
     """
 
     def __init__(self):
-        """
-        Initializes the ID3 classifier.
-        """
         self._root = None
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> 'ID3Classifier':
-        """
-        Builds the decision tree from the training data.
-        """
         self._root = self._build_tree(X, y, list(range(X.shape[1])))
         return self
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """
-        Predicts class labels for the provided data samples.
-        """
         if self._root is None:
             raise Exception("The model has not been trained yet. Please call 'fit' before 'predict'.")
 
@@ -32,9 +23,6 @@ class ID3Classifier():
         return predictions
 
     def _entropy(self, y: np.ndarray) -> float:
-        """
-        Calculates the entropy of the target label distribution.
-        """
         entropy = 0.0
         for label in np.unique(y):
             label_count = np.sum(y == label)
@@ -43,9 +31,6 @@ class ID3Classifier():
         return entropy
 
     def _information_gain(self, X: np.ndarray, y: np.ndarray, feature_index: int) -> float:
-        """
-        Calculates the Information Gain obtained by splitting the data on a specific feature.
-        """
         initial_entropy = self._entropy(y)
         feature_values = np.unique(X[:, feature_index])
         weighted_entropy = 0.0
@@ -58,10 +43,6 @@ class ID3Classifier():
         return initial_entropy - weighted_entropy
 
     def _build_tree(self, X: np.ndarray, y: np.ndarray, available_features: List[int]) -> TreeNode:
-        """
-        Recursively builds the tree nodes by selecting the best attribute for splitting.
-        """
-
         # If all labels are the same, create a leaf node
         if len(np.unique(y)) == 1:
             return TreeNode(value=y[0], is_leaf=True)
@@ -89,8 +70,6 @@ class ID3Classifier():
             root.children[value] = child_node
 
         return root
-
-    """ Getters and Setters """
 
     @property
     def root(self) -> TreeNode:

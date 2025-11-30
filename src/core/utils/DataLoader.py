@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder, LabelEncoder
+from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder, LabelEncoder, OneHotEncoder
 from sklearn.datasets import load_breast_cancer, load_wine
 
 try:
@@ -10,9 +10,6 @@ except ImportError:
 
 
 class DataLoader:
-    """
-    Utility class for loading and preprocessing datasets.
-    """
     @staticmethod
     def load_breast_cancer_data(n_bins=5):
         data = load_breast_cancer()
@@ -60,10 +57,13 @@ class DataLoader:
             y_raw = df.iloc[:, 0].values
             X_raw = df.iloc[:, 1:].values
 
-        enc = OrdinalEncoder()
-        X_encoded = enc.fit_transform(X_raw)
+        enc_ord = OrdinalEncoder()
+        X_encoded = enc_ord.fit_transform(X_raw)
+
+        enc_ohe = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
+        X_ohe = enc_ohe.fit_transform(X_raw)
 
         le = LabelEncoder()
         y_encoded = le.fit_transform(y_raw)
 
-        return X_encoded.astype(int), y_encoded
+        return X_encoded.astype(int), X_ohe, y_encoded

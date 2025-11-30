@@ -8,18 +8,12 @@ class TreeNode:
     """
 
     def __init__(self, feature_index: Optional[int] = None, children: Optional[Dict[Any, 'TreeNode']] = None, value: Optional[Any] = None, is_leaf: bool = False):
-        """
-        Initializes a tree node.
-        """
         self._feature_index = feature_index
         self._children = children if children is not None else {}
         self._value = value
         self._is_leaf = is_leaf
 
     def predict(self, sample: np.ndarray) -> Any:
-        """
-        Traverses the tree structure recursively to return a prediction for a single sample.
-        """
 
         # Base case: if leaf node, return the stored class label
         if self._is_leaf:
@@ -34,8 +28,6 @@ class TreeNode:
             return None
 
         return child_node.predict(sample)
-
-    """ Getters and Setters """
 
     @property
     def feature_index(self) -> Optional[int]:
