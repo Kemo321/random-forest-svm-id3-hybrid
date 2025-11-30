@@ -29,27 +29,27 @@ def run_single_experiment(X_id3, X_svm, y, model_class, model_params, n_repeats=
 
     for i in range(n_repeats):
         current_seed = base_seed + i
-        skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=current_seed) 
-        
+        skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=current_seed)
+
         fold_accuracies = []
         for train_index, test_index in skf.split(X_id3, y):
             y_train, y_test = y[train_index], y[test_index]
-            
+
             X_train_tuple = (X_id3[train_index], X_svm[train_index])
             X_test_tuple = (X_id3[test_index], X_svm[test_index])
-            
+
             if 'random_state' in model_class.__init__.__code__.co_varnames:
                 model = model_class(**model_params, random_state=current_seed)
             else:
                 model = model_class(**model_params)
-                
+
             model.fit(X_train_tuple, y_train)
             preds = model.predict(X_test_tuple)
             acc = accuracy_score(y_test, preds)
             fold_accuracies.append(acc)
-            
+
         accuracies.append(np.mean(fold_accuracies))
-        
+
     return {
         "mean_acc": np.mean(accuracies),
         "std_acc": np.std(accuracies),
@@ -62,12 +62,12 @@ def run_verification_experiment(datasets_config):
     """
     Verifies Custom ID3 vs Sklearn Decision Tree (Entropy).
     """
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("VERIFICATION EXPERIMENT: Custom ID3 vs Sklearn Tree")
-    print("="*50)
-    
+    print("=" * 50)
+
     results = []
-    
+
     for ds in datasets_config:
         ds_name = ds["name"]
         print(f"Verifying on {ds_name}...")
@@ -77,28 +77,28 @@ def run_verification_experiment(datasets_config):
                 X_id3, _, y = loaded_data
             else:
                 X_id3, y = loaded_data
-            
+
             X_train, X_test, y_train, y_test = train_test_split(X_id3, y, test_size=0.3, random_state=42, stratify=y)
-            
+
             # 1. Custom ID3
             id3 = ID3Classifier()
             id3.fit(X_train, y_train)
             pred_id3 = id3.predict(X_test)
             acc_id3 = accuracy_score(y_test, pred_id3)
-            
+
             # 2. Sklearn Tree (Reference)
             dt = DecisionTreeClassifier(criterion='entropy', random_state=42)
             dt.fit(X_train, y_train)
             pred_dt = dt.predict(X_test)
             acc_dt = accuracy_score(y_test, pred_dt)
-            
+
             results.append({
                 "Dataset": ds_name,
                 "Custom ID3 Acc": f"{acc_id3:.4f}",
                 "Sklearn Tree Acc": f"{acc_dt:.4f}",
                 "Diff": f"{acc_id3 - acc_dt:.4f}"
             })
-            
+
         except Exception as e:
             print(f"Error in verification for {ds_name}: {e}")
 
@@ -110,16 +110,16 @@ def run_verification_experiment(datasets_config):
 def generate_generic_plot(df_results, x_col, x_label, title_suffix, output_dir="./plots"):
     if df_results.empty:
         return
-    
+
     os.makedirs(output_dir, exist_ok=True)
     datasets = df_results["dataset"].unique()
-    
+
     for ds_name in datasets:
         subset = df_results[df_results["dataset"] == ds_name]
         subset = subset.sort_values(x_col)
-        
+
         plt.figure(figsize=(10, 6))
-        
+
         hybrid_data = subset[subset["model_type"] == "HybridSVMForest"]
         if not hybrid_data.empty:
             plt.errorbar(
@@ -131,13 +131,13 @@ def generate_generic_plot(df_results, x_col, x_label, title_suffix, output_dir="
                 capsize=5,
                 linewidth=2
             )
-            
+
         plt.title(f"{title_suffix} - {ds_name}")
         plt.xlabel(x_label)
         plt.ylabel("Mean Accuracy (CV)")
         plt.grid(True, linestyle=':', alpha=0.6)
         plt.legend()
-        
+
         safe_name = f"{ds_name}_{x_col}".replace(" ", "_").replace("-", "").lower()
         filename = os.path.join(output_dir, f"exp_{safe_name}.png")
         plt.savefig(filename)
@@ -167,14 +167,14 @@ def main():
 
     run_verification_experiment(datasets_config)
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("STARTING MAIN EXPERIMENTS")
-    print("="*50)
+    print("=" * 50)
 
     for ds in datasets_config:
         ds_name = ds["name"]
         print(f"\nProcessing Dataset: {ds_name}")
-        
+
         try:
             loaded_data = ds["loader"]()
 
@@ -192,7 +192,7 @@ def main():
         fixed_n = 20
         fixed_C = 1.0
         p_svm_values = [0.0, 0.2, 0.5, 0.8, 1.0]
-        
+
         for p in p_svm_values:
             stats = run_single_experiment(
                 X_id3, X_svm, y, HybridSVMForest,
@@ -206,7 +206,7 @@ def main():
         print("   Running Exp 2: Impact of n_estimators...")
         fixed_p_svm_for_T = 0.5
         n_est_values = [10, 20, 50, 100]
-        
+
         for n in n_est_values:
             stats = run_single_experiment(
                 X_id3, X_svm, y, HybridSVMForest,
@@ -216,11 +216,11 @@ def main():
                 "dataset": ds_name, "model_type": "HybridSVMForest",
                 "n_estimators": n, "mean_acc": stats["mean_acc"], "std_acc": stats["std_acc"]
             })
-            
+
         print("   Running Exp 3: Impact of C (Regularization)...")
         fixed_p_svm_for_C = 1.0
         C_values = [0.1, 1.0, 10.0, 50.0]
-        
+
         for c_val in C_values:
             stats = run_single_experiment(
                 X_id3, X_svm, y, HybridSVMForest,
@@ -236,7 +236,7 @@ def main():
         print("\n--- Results: Impact of p_svm ---")
         print(df1[["dataset", "p_svm", "mean_acc"]].to_string(index=False))
         generate_generic_plot(
-            df1, "p_svm", "Share of SVM (p_svm)", 
+            df1, "p_svm", "Share of SVM (p_svm)",
             "Impact of SVM Share"
         )
 
@@ -245,8 +245,7 @@ def main():
         print("\n--- Results: Impact of n_estimators ---")
         print(df2[["dataset", "n_estimators", "mean_acc"]].to_string(index=False))
         generate_generic_plot(
-            df2, "n_estimators", "Number of Estimators (T)", 
-            "Ensemble Size Stability"
+            df2, "n_estimators", "Number of Estimators (T)", "Ensemble Size Stability"
         )
 
     if results_exp_C:
@@ -254,7 +253,7 @@ def main():
         print("\n--- Results: Impact of C parameter ---")
         print(df3[["dataset", "C", "mean_acc"]].to_string(index=False))
         generate_generic_plot(
-            df3, "C", "SVM Regularization (C)", 
+            df3, "C", "SVM Regularization (C)",
             "Impact of C parameter"
         )
 

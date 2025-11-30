@@ -1,7 +1,7 @@
 from .ID3Classifier import ID3Classifier
 from sklearn.svm import LinearSVC
 import numpy as np
-from typing import Optional, Any
+from typing import Optional
 
 
 class HybridSVMForest():
@@ -60,12 +60,11 @@ class HybridSVMForest():
 
         predictions = np.array(predictions)
         final_predictions = []
-        
-        try:
-             most_common_class = self._classes_array[np.argmax(np.bincount(self._classes_array))]
-        except:
-             most_common_class = 0
 
+        try:
+            most_common_class = self._classes_array[np.argmax(np.bincount(self._classes_array))]
+        except Exception:
+            most_common_class = 0
 
         for i in range(X[0].shape[0]):
             votes = predictions[:, i]
@@ -90,11 +89,19 @@ class HybridSVMForest():
     @n_estimators.setter
     def n_estimators(self, value: int): self._n_estimators = value
 
+    @n_estimators.deleter
+    def n_estimators(self):
+        self._n_estimators = None
+
     @property
     def p_svm(self) -> float: return self._p_svm
 
     @p_svm.setter
     def p_svm(self, value: float): self._p_svm = value
+
+    @p_svm.deleter
+    def p_svm(self):
+        self._p_svm = None
 
     @property
     def C(self) -> float: return self._C
@@ -102,14 +109,26 @@ class HybridSVMForest():
     @C.setter
     def C(self, value: float): self._C = value
 
+    @C.deleter
+    def C(self):
+        self._C = None
+
     @property
     def random_state(self) -> Optional[int]: return self._random_state
 
     @random_state.setter
     def random_state(self, value: Optional[int]): self._random_state = value
 
+    @random_state.deleter
+    def random_state(self):
+        self._random_state = None
+
     @property
     def models(self) -> list: return self._models
 
     @models.setter
     def models(self, value: list): self._models = value
+
+    @models.deleter
+    def models(self):
+        self._models = None

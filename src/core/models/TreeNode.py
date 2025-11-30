@@ -8,13 +8,13 @@ class TreeNode:
     """
 
     def __init__(
-            self, 
+            self,
             feature_index: Optional[int] = None,
             children: Optional[Dict[Any, 'TreeNode']] = None,
-            value: Optional[Any] = None, 
+            value: Optional[Any] = None,
             is_leaf: bool = False,
             default_value: Optional[Any] = None
-        ):
+            ):
         self._feature_index = feature_index
         self._children = children if children is not None else {}
         self._value = value
@@ -76,7 +76,7 @@ class TreeNode:
     @property
     def default_value(self) -> Optional[Any]:
         return self._default_value
-    
+
     @default_value.setter
     def default_value(self, value: Any):
         self._default_value = value

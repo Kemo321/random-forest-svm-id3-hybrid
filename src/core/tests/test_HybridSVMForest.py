@@ -25,7 +25,7 @@ class TestHybridSVMForest:
         y = np.array([0, 1, 0])
 
         forest = HybridSVMForest(n_estimators=3, p_svm=0.5, random_state=42)
-        forest.fit(X, y)
+        forest.fit((X, X), y)
 
         assert len(forest.models) == 3
         assert forest._classes_array is not None
@@ -36,7 +36,7 @@ class TestHybridSVMForest:
         y = np.array([0, 1])
 
         forest = HybridSVMForest(n_estimators=2, p_svm=1.0, random_state=42)
-        forest.fit(X, y)
+        forest.fit((X, X), y)
 
         for model in forest.models:
             assert isinstance(model, LinearSVC)
@@ -47,7 +47,7 @@ class TestHybridSVMForest:
         y = np.array([0, 1])
 
         forest = HybridSVMForest(n_estimators=2, p_svm=0.0, random_state=42)
-        forest.fit(X, y)
+        forest.fit((X, X), y)
 
         for model in forest.models:
             assert isinstance(model, ID3Classifier)
@@ -55,7 +55,7 @@ class TestHybridSVMForest:
     def test_predict_without_fit_raises_exception(self, forest):
         X = np.array([[1, 2]])
         with pytest.raises(Exception) as excinfo:
-            forest.predict(X)
+            forest.predict((X, X))
         assert "not been trained" in str(excinfo.value)
 
     def test_predict_majority_voting_logic(self):
@@ -74,7 +74,8 @@ class TestHybridSVMForest:
         forest.models = [model1, model2, model3]
 
         X_dummy = np.zeros((3, 2))
-        predictions = forest.predict(X_dummy)
+
+        predictions = forest.predict((X_dummy, X_dummy))
 
         expected_predictions = np.array([0, 1, 0])
         np.testing.assert_array_equal(predictions, expected_predictions)
@@ -101,8 +102,10 @@ class TestHybridSVMForest:
         y = np.array([0, 0, 1, 1] * 5)
 
         forest = HybridSVMForest(n_estimators=4, p_svm=0.5, random_state=42)
-        forest.fit(X, y)
-        preds = forest.predict(X)
+
+        forest.fit((X, X), y)
+
+        preds = forest.predict((X, X))
 
         assert preds.shape == (20,)
         assert np.all(np.isin(preds, [0, 1]))
