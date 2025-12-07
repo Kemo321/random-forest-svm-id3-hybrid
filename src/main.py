@@ -1,5 +1,6 @@
 import pandas as pd
 import warnings
+import os
 
 # Sklearn optimizations
 try:
@@ -39,6 +40,9 @@ def main():
     runner = ExperimentRunner(n_repeats=25, n_splits=5)
     visualizer = Visualizer(output_dir="./plots")
 
+    results_dir = "./results"
+    os.makedirs(results_dir, exist_ok=True)
+
     verifier.run(datasets_config)
 
     print("\n" + "="*50)
@@ -70,23 +74,23 @@ def main():
         for p in [0.0, 0.2, 0.5, 0.8, 1.0]:
             stats = runner.run_cv(
                 X_id3, X_svm, y, HybridSVMForest,
-                {"n_estimators": fixed_n, "p_svm": p, "C": fixed_C}
+                {"estimator_count": fixed_n, "p_svm": p, "C": fixed_C}
             )
             results_exp_p_svm.append({
                 "dataset": ds_name, "model_type": "HybridSVMForest",
                 "p_svm": p, **stats
             })
 
-        print("   Running Exp 2: Impact of n_estimators...")
+        print("   Running Exp 2: Impact of estimator_count...")
         fixed_p_for_T = 0.5
         for n in [10, 20, 50, 100]:
             stats = runner.run_cv(
                 X_id3, X_svm, y, HybridSVMForest,
-                {"n_estimators": n, "p_svm": fixed_p_for_T, "C": fixed_C}
+                {"estimator_count": n, "p_svm": fixed_p_for_T, "C": fixed_C}
             )
             results_exp_n_est.append({
                 "dataset": ds_name, "model_type": "HybridSVMForest",
-                "n_estimators": n, **stats
+                "estimator_count": n, **stats
             })
 
         print("   Running Exp 3: Impact of C (Regularization)...")
@@ -94,7 +98,7 @@ def main():
         for c_val in [0.1, 1.0, 10.0, 50.0]:
             stats = runner.run_cv(
                 X_id3, X_svm, y, HybridSVMForest,
-                {"n_estimators": fixed_n, "p_svm": fixed_p_for_C, "C": c_val}
+                {"estimator_count": fixed_n, "p_svm": fixed_p_for_C, "C": c_val}
             )
             results_exp_C.append({
                 "dataset": ds_name, "model_type": "HybridSVMForest",
@@ -103,18 +107,33 @@ def main():
 
     if results_exp_p_svm:
         df = pd.DataFrame(results_exp_p_svm)
+
+        csv_path = os.path.join(results_dir, "results_impact_p_svm.csv")
+        df.to_csv(csv_path, index=False)
+        print(f"\nSaved CSV: {csv_path}")
+
         print("\n--- Results: Impact of p_svm ---")
         print(df[["dataset", "p_svm", "mean_acc"]].to_string(index=False))
         visualizer.plot_experiment(df, "p_svm", "Share of SVM (p_svm)", "Impact of SVM Share")
 
     if results_exp_n_est:
         df = pd.DataFrame(results_exp_n_est)
-        print("\n--- Results: Impact of n_estimators ---")
-        print(df[["dataset", "n_estimators", "mean_acc"]].to_string(index=False))
-        visualizer.plot_experiment(df, "n_estimators", "Number of Estimators (T)", "Ensemble Size Stability")
+
+        csv_path = os.path.join(results_dir, "results_impact_estimator_count.csv")
+        df.to_csv(csv_path, index=False)
+        print(f"\nSaved CSV: {csv_path}")
+
+        print("\n--- Results: Impact of estimator_count ---")
+        print(df[["dataset", "estimator_count", "mean_acc"]].to_string(index=False))
+        visualizer.plot_experiment(df, "estimator_count", "Number of Estimators (T)", "Ensemble Size Stability")
 
     if results_exp_C:
         df = pd.DataFrame(results_exp_C)
+
+        csv_path = os.path.join(results_dir, "results_impact_C.csv")
+        df.to_csv(csv_path, index=False)
+        print(f"\nSaved CSV: {csv_path}")
+
         print("\n--- Results: Impact of C parameter ---")
         print(df[["dataset", "C", "mean_acc"]].to_string(index=False))
         visualizer.plot_experiment(df, "C", "SVM Regularization (C)", "Impact of C parameter")

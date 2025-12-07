@@ -1,13 +1,17 @@
 import os
+
 import matplotlib.pyplot as plt
+import pandas as pd
 
 
 class Visualizer:
-    def __init__(self, output_dir="./plots"):
+    output_dir: str
+
+    def __init__(self, output_dir: str = "./plots") -> None:
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
 
-    def plot_experiment(self, df_results, x_col, x_label, title_suffix):
+    def plot_experiment(self, df_results: pd.DataFrame, x_col: str, x_label: str, title_suffix: str) -> None:
         if df_results.empty:
             return
 
@@ -37,8 +41,8 @@ class Visualizer:
             plt.grid(True, linestyle=':', alpha=0.6)
             plt.legend()
 
-            safe_name = f"{ds_name}_{x_col}".replace(" ", "_").replace("-", "").lower()
-            filename = os.path.join(self.output_dir, f"exp_{safe_name}.png")
+            safe_name: str = f"{ds_name}_{x_col}".replace(" ", "_").replace("-", "").lower()
+            filename: str = os.path.join(self.output_dir, f"exp_{safe_name}.png")
             plt.savefig(filename)
             plt.close()
             print(f"Plot saved: {filename}")
