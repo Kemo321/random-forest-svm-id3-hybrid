@@ -3,17 +3,13 @@ import numpy as np
 
 
 class TreeNode:
-    """
-    Represents a single node in the ID3 decision tree structure.
-    """
-
     def __init__(
             self,
-            feature_index: Optional[int] = None,
             children: Optional[Dict[Any, 'TreeNode']] = None,
-            value: Optional[Any] = None,
+            default_value: Optional[Any] = None,
+            feature_index: Optional[int] = None,
             is_leaf: bool = False,
-            default_value: Optional[Any] = None
+            value: Optional[Any] = None,
             ):
         self._feature_index = feature_index
         self._children = children if children is not None else {}
@@ -22,16 +18,12 @@ class TreeNode:
         self._default_value = default_value
 
     def predict(self, sample: np.ndarray) -> Any:
-
-        # Base case: if leaf node, return the stored class label
         if self._is_leaf:
             return self._value
 
-        # Recursive case: traverse to the appropriate child node
         feature_value = sample[self._feature_index]
         child_node = self._children.get(feature_value)
 
-        # If no child node exists for the feature value, return None
         if child_node is None:
             return self._default_value
 

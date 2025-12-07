@@ -6,27 +6,32 @@ from typing import Optional
 
 class HybridSVMForest():
     def __init__(self, n_estimators: int = 10, p_svm: float = 0.5, C: float = 1.0, random_state: Optional[int] = None):
-        self._n_estimators = n_estimators
+        self._estimator_count = n_estimators
         self._p_svm = p_svm
         self._C = C
         self._random_state = random_state
         self._models = []
+        self._feature_indices = []
         self._classes_array = None
+        self._majority_class = None
 
-    def fit(self, X: tuple, y: np.ndarray) -> 'HybridSVMForest':
-        self._models = []
-        self._classes_array = np.unique(y)
+    def fit(self, features: tuple, labels: np.ndarray) -> 'HybridSVMForest':
+        self._classes_array = np.unique(labels)
+        self._models.clear()
+        self._feature_indices.clear()
+
+        self._majority_class = np.bincount(labels.astype(int)).argmax()
 
         rng = np.random.default_rng(self._random_state)
-        n_samples = X[0].shape[0]
+        n_samples = features[0].shape[0]
 
-        for _ in range(self._n_estimators):
+        for _ in range(self._estimator_count):
 
             indices = rng.choice(n_samples, size=n_samples, replace=True)
-            y_sample = y[indices]
+            y_sample = labels[indices]
 
             if rng.random() < self._p_svm:
-                X_sample = X[1][indices]
+                X_sample = features[1][indices]
                 model = LinearSVC(
                     C=self._C,
                     random_state=self._random_state,
@@ -34,39 +39,43 @@ class HybridSVMForest():
                     max_iter=2000
                 )
             else:
-                X_sample = X[0][indices]
+                X_sample = features[0][indices]
                 model = ID3Classifier()
+
+            n_features = X_sample.shape[1]
+            k = max(1, int(np.sqrt(n_features)))
+            f_idx = rng.choice(n_features, size=k, replace=False)
+            X_sample = X_sample[:, f_idx]
 
             model.fit(X_sample, y_sample)
             self._models.append(model)
+            self._feature_indices.append(f_idx)
 
         return self
 
-    def predict(self, X: tuple) -> np.ndarray:
+    def predict(self, features: tuple) -> np.ndarray:
         if not self._models:
-            raise Exception("The model has not been trained yet. Please call 'fit' before 'predict'.")
+            raise Exception("Call fit before predict.")
 
         predictions = []
 
-        for model in self._models:
-            if isinstance(model, LinearSVC):
-                current_preds = model.predict(X[1])
-            elif isinstance(model, ID3Classifier):
-                current_preds = model.predict(X[0])
-            else:
-                current_preds = model.predict(X[0])
+        for i, model in enumerate(self._models):
+            f_idx = self._feature_indices[i]
 
-            predictions.append(current_preds)
+            if isinstance(model, LinearSVC):
+                X_input = features[1][:, f_idx]
+            else:
+                X_input = features[0][:, f_idx]
+
+            preds = model.predict(X_input)
+            predictions.append(preds)
 
         predictions = np.array(predictions)
         final_predictions = []
 
-        try:
-            most_common_class = self._classes_array[np.argmax(np.bincount(self._classes_array))]
-        except Exception:
-            most_common_class = 0
+        most_common_class = self._majority_class
 
-        for i in range(X[0].shape[0]):
+        for i in range(features[0].shape[0]):
             votes = predictions[:, i]
             if any(v is None for v in votes):
                 print("Warning: None value found in predictions for sample index", i)
@@ -84,14 +93,14 @@ class HybridSVMForest():
         return np.array(final_predictions)
 
     @property
-    def n_estimators(self) -> int: return self._n_estimators
+    def estimator_count(self) -> int: return self._estimator_count
 
-    @n_estimators.setter
-    def n_estimators(self, value: int): self._n_estimators = value
+    @estimator_count.setter
+    def estimator_count(self, value: int): self._estimator_count = value
 
-    @n_estimators.deleter
-    def n_estimators(self):
-        self._n_estimators = None
+    @estimator_count.deleter
+    def estimator_count(self):
+        self._estimator_count = None
 
     @property
     def p_svm(self) -> float: return self._p_svm

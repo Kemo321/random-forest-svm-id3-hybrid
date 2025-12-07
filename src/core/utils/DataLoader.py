@@ -1,12 +1,7 @@
 import pandas as pd
 from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder, LabelEncoder, OneHotEncoder
 from sklearn.datasets import load_breast_cancer, load_wine
-
-try:
-    import openml
-    OPENML_AVAILABLE = True
-except ImportError:
-    OPENML_AVAILABLE = False
+import openml
 
 
 class DataLoader:
@@ -17,9 +12,11 @@ class DataLoader:
         y = data.target
 
         est = KBinsDiscretizer(n_bins=n_bins, encode='ordinal', strategy='quantile')
-        X_binned = est.fit_transform(X)
+        X_id3 = est.fit_transform(X).astype(int)
 
-        return X_binned.astype(int), y
+        X_svm = X
+
+        return X_id3, X_svm, y
 
     @staticmethod
     def load_wine_data(n_bins=5):
@@ -28,27 +25,20 @@ class DataLoader:
         y = data.target
 
         est = KBinsDiscretizer(n_bins=n_bins, encode='ordinal', strategy='quantile')
-        X_binned = est.fit_transform(X)
+        X_id3 = est.fit_transform(X).astype(int)
 
-        return X_binned.astype(int), y
+        X_svm = X
+
+        return X_id3, X_svm, y
 
     @staticmethod
     def load_mushroom_data(filepath='data/mushrooms.csv'):
-        df = None
-
-        if OPENML_AVAILABLE:
-            try:
-                dataset = openml.datasets.get_dataset(24, download_data=True)
-                df = dataset.get_data(dataset_format='dataframe')[0]
-                print("Mushroom dataset downloaded from OpenML.")
-            except Exception as e:
-                print(f"Error downloading Mushroom dataset from OpenML: {e}")
-
-        if df is None:
-            try:
-                df = pd.read_csv(filepath)
-            except FileNotFoundError:
-                raise Exception("File mushroom.csv not found locally and OpenML is unavailable.")
+        try:
+            dataset = openml.datasets.get_dataset(24, download_data=True)
+            df = dataset.get_data(dataset_format='dataframe')[0]
+            print("Mushroom dataset downloaded from OpenML.")
+        except Exception as e:
+            raise RuntimeError(f"Failed to download Mushroom dataset: {e}")
 
         df = df.astype('object')
         df = df.replace('?', 'missing')
@@ -62,12 +52,12 @@ class DataLoader:
             X_raw = df.iloc[:, 1:].values
 
         enc_ord = OrdinalEncoder()
-        X_encoded = enc_ord.fit_transform(X_raw)
+        X_id3 = enc_ord.fit_transform(X_raw).astype(int)
 
         enc_ohe = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
-        X_ohe = enc_ohe.fit_transform(X_raw)
+        X_svm = enc_ohe.fit_transform(X_raw)
 
         le = LabelEncoder()
-        y_encoded = le.fit_transform(y_raw)
+        y = le.fit_transform(y_raw)
 
-        return X_encoded.astype(int), X_ohe, y_encoded
+        return X_id3, X_svm, y

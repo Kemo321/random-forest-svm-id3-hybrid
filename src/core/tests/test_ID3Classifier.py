@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
-from src.core.models.ID3Classifier import ID3Classifier
 from src.core.models.TreeNode import TreeNode
-
+from src.core.models.ID3Classifier import ID3Classifier
+from src.core.models.ID3Classifier import entropy, information_gain
 
 class TestID3Classifier:
 
@@ -13,40 +13,37 @@ class TestID3Classifier:
     def test_initialization(self, classifier):
         assert classifier.root is None
 
-    def test_entropy_homogeneous(self, classifier):
+    def test_entropy_homogeneous(self):
         y = np.array([1, 1, 1, 1])
-        assert abs(classifier._entropy(y)) < 1e-4
+        assert abs(entropy(y)) < 1e-4
 
-    def test_entropy_split(self, classifier):
+    def test_entropy_split(self):
         y = np.array([1, 1, 0, 0])
         expected = 1.0
-        assert np.isclose(classifier._entropy(y), expected)
+        assert np.isclose(entropy(y), expected, atol=1e-4)
 
-    def test_entropy_multiclass(self, classifier):
+    def test_entropy_multiclass(self):
         y = np.array([0, 0, 1, 1, 2, 2])
-        # - (1/3 log2 1/3) * 3 = - log2(1/3) = log2(3) approx 1.58496
         expected = 1.58496
-        assert np.isclose(classifier._entropy(y), expected, atol=1e-4)
+        assert np.isclose(entropy(y), expected, atol=1e-4)
 
-    def test_information_gain_perfect_split(self, classifier):
+    def test_information_gain_perfect_split(self):
         X = np.array([[0], [0], [1], [1]])
         y = np.array([0, 0, 1, 1])
-        # H(S) = 1. Split by feat 0 gives two pure subsets. Weighted entropy = 0. IG = 1.
-        ig = classifier._information_gain(X, y, 0)
-        assert np.isclose(ig, 1.0)
+        ig = information_gain(X, y, 0)
+        assert np.isclose(ig, 1.0, atol=1e-4)
 
-    def test_information_gain_no_gain(self, classifier):
+    def test_information_gain_no_gain(self):
         X = np.array([[0], [1], [0], [1]])
         y = np.array([0, 0, 1, 1])
-        # Feature is uncorrelated with Y.
-        ig = classifier._information_gain(X, y, 0)
-        assert np.isclose(ig, 0.0)
+        ig = information_gain(X, y, 0)
+        assert np.isclose(ig, 0.0, atol=1e-4)
 
     def test_predict_without_fit_raises_exception(self, classifier):
         X = np.array([[1, 2]])
         with pytest.raises(Exception) as excinfo:
             classifier.predict(X)
-        assert "not been trained" in str(excinfo.value)
+        assert "Call fit before predict." in str(excinfo.value)
 
     def test_simple_binary_classification(self, classifier):
         X = np.array([

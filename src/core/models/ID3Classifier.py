@@ -1,75 +1,85 @@
 from .TreeNode import TreeNode
 import numpy as np
 from typing import List
+from collections import Counter
+
+
+def entropy(labels: np.ndarray) -> float:
+    if len(labels) == 0:
+        return 0.0
+    label_counts = Counter(labels)
+    total_count = len(labels)
+    entropy = 0.0
+
+    for count in label_counts.values():
+        probability = count / total_count
+        entropy -= probability * np.log2(probability + 1e-9)
+
+    return entropy
+
+
+def information_gain(features: np.ndarray, labels: np.ndarray, feature_index: int) -> float:
+    base_entropy = entropy(labels)
+
+    values = np.unique(features[:, feature_index])
+    total = len(labels)
+
+    split_entropy = 0.0
+
+    for v in values:
+        subset = labels[features[:, feature_index] == v]
+        if len(subset) == 0:
+            continue
+        weight = len(subset) / total
+        split_entropy += weight * entropy(subset)
+
+    return base_entropy - split_entropy
 
 
 class ID3Classifier():
-    """
-    Custom implementation of the ID3 Decision Tree algorithm using Information Gain.
-    """
-
     def __init__(self):
         self._root = None
 
-    def fit(self, X: np.ndarray, y: np.ndarray) -> 'ID3Classifier':
-        self._root = self._build_tree(X, y, list(range(X.shape[1])))
+    def fit(self, features: np.ndarray, labels: np.ndarray) -> 'ID3Classifier':
+        self._root = self._build_tree(features, labels, list(range(features.shape[1])))
         return self
 
-    def predict(self, X: np.ndarray) -> np.ndarray:
+    def predict(self, features: np.ndarray) -> np.ndarray:
         if self._root is None:
-            raise Exception("The model has not been trained yet. Please call 'fit' before 'predict'.")
+            raise Exception("Call fit before predict.")
 
-        predictions = np.array([self._root.predict(sample) for sample in X])
+        predictions = np.array([self._root.predict(sample) for sample in features])
         return predictions
 
-    def _entropy(self, y: np.ndarray) -> float:
-        entropy = 0.0
-        for label in np.unique(y):
-            label_count = np.sum(y == label)
-            probability = label_count / y.size
-            entropy -= probability * np.log2(probability + 1e-9)  # Add small value to avoid log(0)
-        return entropy
+    def _build_tree(self, features: np.ndarray, labels: np.ndarray, available_features: List[int]) -> TreeNode:
+        if len(labels) == 0:
+            return TreeNode(value=None, is_leaf=True, default_value=None)
 
-    def _information_gain(self, X: np.ndarray, y: np.ndarray, feature_index: int) -> float:
-        initial_entropy = self._entropy(y)
-        feature_values = np.unique(X[:, feature_index])
-        weighted_entropy = 0.0
+        majority_label = Counter(labels).most_common(1)[0][0]
 
-        for value in feature_values:
-            subset_indices = np.where(X[:, feature_index] == value)[0]
-            subset_y = y[subset_indices]
-            weighted_entropy += (subset_y.size / y.size) * self._entropy(subset_y)
+        if len(np.unique(labels)) == 1:
+            return TreeNode(value=labels[0], is_leaf=True, default_value=labels[0])
 
-        return initial_entropy - weighted_entropy
-
-    def _build_tree(self, X: np.ndarray, y: np.ndarray, available_features: List[int]) -> TreeNode:
-        # Compute majority label for this subset (for defaults/unseen)
-        if len(y) == 0:
-            return TreeNode(value=None, is_leaf=True, default_value=None)  # Edge case, empty subset
-        majority_label = np.bincount(y).argmax()
-
-        # If all labels are the same, create a leaf node
-        if len(np.unique(y)) == 1:
-            return TreeNode(value=y[0], is_leaf=True, default_value=y[0])
-
-        # If no features are left, create a leaf node with the most common label
         if not available_features:
             return TreeNode(value=majority_label, is_leaf=True, default_value=majority_label)
 
-        # Find the best feature to split on
-        gains = [self._information_gain(X, y, feature) for feature in available_features]
-        best_feature = available_features[np.argmax(gains)]
+        best_feature = None
+        best_gain = -1
+        
+        for feature_index in available_features:
+            gain = information_gain(features, labels, feature_index)
+            if best_feature is None or gain > best_gain:
+                best_feature = feature_index
+                best_gain = gain
 
-        # Create a root node for the current subtree
         root = TreeNode(feature_index=best_feature, default_value=majority_label)
 
-        # Split the data by the best feature
-        for value in np.unique(X[:, best_feature]):
-            subset_indices = np.where(X[:, best_feature] == value)[0]
-            subset_X = X[subset_indices]
-            subset_y = y[subset_indices]
+        for value in np.unique(features[:, best_feature]):
+            subset_indices = np.where(features[:, best_feature] == value)[0]
+            subset_features = features[subset_indices]
+            subset_labels = labels[subset_indices]
 
-            child_node = self._build_tree(subset_X, subset_y, [f for f in available_features if f != best_feature])
+            child_node = self._build_tree(subset_features, subset_labels, [f for f in available_features if f != best_feature])
             root.children[value] = child_node
 
         return root
