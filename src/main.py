@@ -18,6 +18,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=RuntimeWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 
+
 def main():
     datasets_config = [
         {
@@ -51,7 +52,7 @@ def main():
     for ds in datasets_config:
         ds_name = ds["name"]
         print(f"\nProcessing Dataset: {ds_name}")
-        
+
         try:
             loaded_data = ds["loader"]()
             if len(loaded_data) == 3:
@@ -100,7 +101,6 @@ def main():
                 "C": c_val, **stats
             })
 
-    
     if results_exp_p_svm:
         df = pd.DataFrame(results_exp_p_svm)
         print("\n--- Results: Impact of p_svm ---")
@@ -120,6 +120,7 @@ def main():
         visualizer.plot_experiment(df, "C", "SVM Regularization (C)", "Impact of C parameter")
 
     print(f"\nDone. Check the '{visualizer.output_dir}' directory.")
+
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,3 @@
-import pandas as pd
 from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder, LabelEncoder, OneHotEncoder
 from sklearn.datasets import load_breast_cancer, load_wine
 import openml

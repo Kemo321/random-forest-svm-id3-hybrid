@@ -13,9 +13,9 @@ class VerificationRunner:
         print("\n" + "="*50)
         print("VERIFICATION EXPERIMENT: Custom ID3 vs Sklearn Tree")
         print("="*50)
-        
+
         results = []
-        
+
         for ds in datasets_config:
             ds_name = ds["name"]
             print(f"Verifying on {ds_name}...")
@@ -25,28 +25,28 @@ class VerificationRunner:
                     X_id3, _, y = loaded_data
                 else:
                     X_id3, y = loaded_data
-                
+
                 X_train, X_test, y_train, y_test = train_test_split(
                     X_id3, y, test_size=0.3, random_state=self.random_state, stratify=y
                 )
-                
+
                 id3 = ID3Classifier()
                 id3.fit(X_train, y_train)
                 pred_id3 = id3.predict(X_test)
                 acc_id3 = accuracy_score(y_test, pred_id3)
-                
+
                 dt = DecisionTreeClassifier(criterion='entropy', random_state=self.random_state)
                 dt.fit(X_train, y_train)
                 pred_dt = dt.predict(X_test)
                 acc_dt = accuracy_score(y_test, pred_dt)
-                
+
                 results.append({
                     "Dataset": ds_name,
                     "Custom ID3 Acc": f"{acc_id3:.4f}",
                     "Sklearn Tree Acc": f"{acc_dt:.4f}",
                     "Diff": f"{acc_id3 - acc_dt:.4f}"
                 })
-                
+
             except Exception as e:
                 print(f"Error in verification for {ds_name}: {e}")
 

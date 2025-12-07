@@ -4,6 +4,7 @@ from src.core.models.TreeNode import TreeNode
 from src.core.models.ID3Classifier import ID3Classifier
 from src.core.models.ID3Classifier import entropy, information_gain
 
+
 class TestID3Classifier:
 
     @pytest.fixture

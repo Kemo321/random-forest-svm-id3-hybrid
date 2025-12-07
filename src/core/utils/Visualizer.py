@@ -16,9 +16,9 @@ class Visualizer:
         for ds_name in datasets:
             subset = df_results[df_results["dataset"] == ds_name]
             subset = subset.sort_values(x_col)
-            
+
             plt.figure(figsize=(10, 6))
-            
+
             hybrid_data = subset[subset["model_type"] == "HybridSVMForest"]
             if not hybrid_data.empty:
                 plt.errorbar(

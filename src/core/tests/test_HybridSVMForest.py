@@ -10,10 +10,10 @@ class TestHybridSVMForest:
 
     @pytest.fixture
     def forest(self):
-        return HybridSVMForest(n_estimators=5, p_svm=0.5, C=1.0, random_state=42)
+        return HybridSVMForest(estimator_count=5, p_svm=0.5, C=1.0, random_state=42)
 
     def test_initialization(self, forest):
-        assert forest.n_estimators == 5
+        assert forest.estimator_count == 5
         assert forest.p_svm == 0.5
         assert forest.C == 1.0
         assert forest.random_state == 42
@@ -21,10 +21,10 @@ class TestHybridSVMForest:
         assert forest._classes_array is None
 
     def test_fit_populates_models(self):
-        X = np.array([[1, 2], [3, 4], [5, 6]])
-        y = np.array([0, 1, 0])
+        X = np.array([[1, 2], [3, 4], [5, 6], [7, 8]])
+        y = np.array([0, 1, 2, 4])
 
-        forest = HybridSVMForest(n_estimators=3, p_svm=0.5, random_state=42)
+        forest = HybridSVMForest(estimator_count=3, p_svm=0.5, random_state=42)
         forest.fit((X, X), y)
 
         assert len(forest.models) == 3
@@ -35,7 +35,7 @@ class TestHybridSVMForest:
         X = np.array([[1, 2], [3, 4]])
         y = np.array([0, 1])
 
-        forest = HybridSVMForest(n_estimators=2, p_svm=1.0, random_state=42)
+        forest = HybridSVMForest(estimator_count=2, p_svm=1.0, random_state=42)
         forest.fit((X, X), y)
 
         for model in forest.models:
@@ -46,7 +46,7 @@ class TestHybridSVMForest:
         X = np.array([[1, 2], [3, 4]])
         y = np.array([0, 1])
 
-        forest = HybridSVMForest(n_estimators=2, p_svm=0.0, random_state=42)
+        forest = HybridSVMForest(estimator_count=2, p_svm=0.0, random_state=42)
         forest.fit((X, X), y)
 
         for model in forest.models:
@@ -56,11 +56,12 @@ class TestHybridSVMForest:
         X = np.array([[1, 2]])
         with pytest.raises(Exception) as excinfo:
             forest.predict((X, X))
-        assert "not been trained" in str(excinfo.value)
+        assert "Call fit before predict." in str(excinfo.value)
 
     def test_predict_majority_voting_logic(self):
-        forest = HybridSVMForest(n_estimators=3)
+        forest = HybridSVMForest(estimator_count=5)
         forest._classes_array = np.array([0, 1])
+        forest._majority_class = 0
 
         model1 = MagicMock()
         model1.predict.return_value = np.array([0, 1, 0])
@@ -71,7 +72,16 @@ class TestHybridSVMForest:
         model3 = MagicMock()
         model3.predict.return_value = np.array([1, 0, 0])
 
-        forest.models = [model1, model2, model3]
+        model4 = MagicMock()
+        model4.predict.return_value = np.array([1, 1, 1])
+
+        model5 = MagicMock()
+        model5.predict.return_value = np.array([0, 0, 0])
+
+        forest.models = [model1, model2, model3, model4, model5]
+
+        dummy_indices = np.array([0, 1])
+        forest._feature_indices = [dummy_indices] * 5
 
         X_dummy = np.zeros((3, 2))
 
@@ -81,10 +91,10 @@ class TestHybridSVMForest:
         np.testing.assert_array_equal(predictions, expected_predictions)
 
     def test_getters_setters_deleters(self, forest):
-        forest.n_estimators = 100
-        assert forest.n_estimators == 100
-        del forest.n_estimators
-        assert forest.n_estimators is None
+        forest.estimator_count = 100
+        assert forest.estimator_count == 100
+        del forest.estimator_count
+        assert forest.estimator_count is None
 
         forest.p_svm = 0.9
         assert forest.p_svm == 0.9
@@ -101,7 +111,7 @@ class TestHybridSVMForest:
         X = np.array([[0], [0], [1], [1]] * 5)
         y = np.array([0, 0, 1, 1] * 5)
 
-        forest = HybridSVMForest(n_estimators=4, p_svm=0.5, random_state=42)
+        forest = HybridSVMForest(estimator_count=4, p_svm=0.5, random_state=42)
 
         forest.fit((X, X), y)
 

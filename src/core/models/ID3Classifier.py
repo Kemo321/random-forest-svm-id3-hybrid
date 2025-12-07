@@ -65,7 +65,7 @@ class ID3Classifier():
 
         best_feature = None
         best_gain = -1
-        
+
         for feature_index in available_features:
             gain = information_gain(features, labels, feature_index)
             if best_feature is None or gain > best_gain:

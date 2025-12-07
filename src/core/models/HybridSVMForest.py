@@ -5,8 +5,8 @@ from typing import Optional
 
 
 class HybridSVMForest():
-    def __init__(self, n_estimators: int = 10, p_svm: float = 0.5, C: float = 1.0, random_state: Optional[int] = None):
-        self._estimator_count = n_estimators
+    def __init__(self, estimator_count: int = 10, p_svm: float = 0.5, C: float = 1.0, random_state: Optional[int] = None):
+        self._estimator_count = estimator_count
         self._p_svm = p_svm
         self._C = C
         self._random_state = random_state
