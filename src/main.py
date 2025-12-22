@@ -34,6 +34,10 @@ def main():
             "name": "Wine Quality - Red",
             "loader": lambda: DataLoader.load_wine_data(n_bins=5),
         },
+        {
+            "name": "Car Evaluation",
+            "loader": lambda: DataLoader.load_car_data(),
+        }
     ]
 
     verifier = VerificationRunner()

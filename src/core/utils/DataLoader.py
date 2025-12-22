@@ -60,3 +60,21 @@ class DataLoader:
         y = le.fit_transform(y_raw)
 
         return X_id3, X_svm, y
+
+    @staticmethod
+    def load_car_data():
+        try:
+            dataset = openml.datasets.get_dataset(21, download_data=True)
+            df, _, _, _ = dataset.get_data(dataset_format='dataframe')
+            print("Car Evaluation dataset downloaded from OpenML.")
+        except Exception as e:
+            raise RuntimeError(f"Failed to download Car dataset: {e}")
+
+        X_raw = df.drop('class', axis=1).values
+        y_raw = df['class'].values
+
+        X_id3 = OrdinalEncoder().fit_transform(X_raw).astype(int)
+        X_svm = OneHotEncoder(handle_unknown='ignore', sparse_output=False).fit_transform(X_raw)
+        y = LabelEncoder().fit_transform(y_raw)
+
+        return X_id3, X_svm, y
