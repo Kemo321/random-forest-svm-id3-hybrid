@@ -1,5 +1,5 @@
 from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder, LabelEncoder, OneHotEncoder
-from sklearn.datasets import load_breast_cancer, load_wine
+from sklearn.datasets import load_breast_cancer
 import openml
 
 
@@ -18,15 +18,30 @@ class DataLoader:
         return X_id3, X_svm, y
 
     @staticmethod
-    def load_wine_data(n_bins=5):
-        data = load_wine()
-        X = data.data
-        y = data.target
+    def load_wine_quality_red_data(n_bins=5):
+        try:
+            dataset = openml.datasets.get_dataset(287, download_data=True)
+            df, _, _, _ = dataset.get_data(dataset_format='dataframe')
+            print("Wine Quality Red dataset downloaded from OpenML.")
+        except Exception as e:
+            raise RuntimeError(f"Failed to download Wine Quality Red dataset: {e}")
+
+        if 'class' in df.columns:
+            y_raw = df['class'].values
+            X = df.drop('class', axis=1).values
+        elif 'quality' in df.columns:
+            y_raw = df['quality'].values
+            X = df.drop('quality', axis=1).values
+        else:
+            y_raw = df.iloc[:, -1].values
+            X = df.iloc[:, :-1].values
+
+        y = (y_raw.astype(float) > 5).astype(int)
 
         est = KBinsDiscretizer(n_bins=n_bins, encode='ordinal', strategy='quantile')
         X_id3 = est.fit_transform(X).astype(int)
 
-        X_svm = X
+        X_svm = X.astype(float)
 
         return X_id3, X_svm, y
 

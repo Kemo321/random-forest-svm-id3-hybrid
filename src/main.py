@@ -1,6 +1,8 @@
 import pandas as pd
 import warnings
 import os
+from sklearn.metrics import confusion_matrix
+import numpy as np
 
 # Sklearn optimizations
 try:
@@ -32,7 +34,7 @@ def main():
         },
         {
             "name": "Wine Quality - Red",
-            "loader": lambda: DataLoader.load_wine_data(n_bins=5),
+            "loader": lambda: DataLoader.load_wine_quality_red_data(n_bins=5),
         },
         {
             "name": "Car Evaluation",
@@ -143,6 +145,46 @@ def main():
         visualizer.plot_experiment(df, "C", "SVM Regularization (C)", "Impact of C parameter")
 
     print(f"\nDone. Check the '{visualizer.output_dir}' directory.")
+
+    print("\n" + "="*50)
+    print("GENERATING CONFUSION MATRICES")
+    print("="*50)
+
+    cm_dir = os.path.join(results_dir, 'confusion_matrices')
+    os.makedirs(cm_dir, exist_ok=True)
+
+    for ds in datasets_config:
+        ds_name = ds["name"]
+        print(f"\nGenerating confusion matrix for {ds_name}...")
+
+        try:
+            loaded_data = ds["loader"]()
+            if len(loaded_data) == 3:
+                X_id3, X_svm, y = loaded_data
+            else:
+                X_id3, y = loaded_data
+                X_svm = X_id3
+
+            result = runner.run_single_with_confusion_matrix(
+                X_id3, X_svm, y, HybridSVMForest,
+                {"estimator_count": 50, "p_svm": 0.5, "C": 1.0},
+                random_state=42
+            )
+
+            cm = result["confusion_matrix"]
+            ds_name_clean = ds_name.replace(' ', '_').replace('-', '_')
+
+            cm_path = os.path.join(cm_dir, f"cm_final_{ds_name_clean}.csv")
+            np.savetxt(cm_path, cm, delimiter=',', fmt='%d')
+
+            print(f"  Accuracy: {result['accuracy']:.4f}")
+            print(f"  Confusion Matrix:\n{cm}")
+            print(f"  Saved to: {cm_path}")
+
+        except Exception as e:
+            print(f"  Error: {e}")
+
+    print("\nAll confusion matrices generated.")
 
 
 if __name__ == "__main__":
