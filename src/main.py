@@ -1,7 +1,6 @@
 import pandas as pd
 import warnings
 import os
-from sklearn.metrics import confusion_matrix
 import numpy as np
 
 # Sklearn optimizations

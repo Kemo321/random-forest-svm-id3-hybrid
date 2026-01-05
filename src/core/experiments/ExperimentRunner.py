@@ -1,5 +1,5 @@
 import time
-from typing import Dict, Any, Type, List, Optional
+from typing import Dict, Any, Type, List
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import StratifiedKFold
