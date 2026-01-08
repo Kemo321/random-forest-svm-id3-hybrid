@@ -1,7 +1,26 @@
-import pandas as pd
+"""
+Main entry point for the Hybrid SVM-Forest experiments.
+
+Usage (from project root directory):
+    python -m src.main                    # Run all experiments (data + plots)
+    python -m src.main --data-only        # Generate only CSV results
+    python -m src.main --plots-only       # Generate only plots from existing CSVs
+    python -m src.main --verification     # Run verification experiment only
+
+Or from src directory:
+    python main.py                    # Run all experiments
+    python main.py --data-only        # Generate only CSV results
+    python main.py --plots-only       # Generate only plots from existing CSVs
+"""
+
+import argparse
 import warnings
 import os
-import numpy as np
+import sys
+
+# Determine project root (parent of src/)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 
 # Sklearn optimizations
 try:
@@ -12,178 +31,142 @@ except ImportError:
 
 from core.models.HybridSVMForest import HybridSVMForest
 from core.utils.DataLoader import DataLoader
-from core.experiments.ExperimentRunner import ExperimentRunner
+from core.experiments.DataGenerator import DataGenerator
+from core.experiments.PlotGenerator import PlotGenerator
 from core.experiments.VerificationRunner import VerificationRunner
-from core.utils.Visualizer import Visualizer
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=RuntimeWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 
 
-def main():
-    datasets_config = [
+def get_datasets_config():
+    """Define all datasets to be used in experiments."""
+    return [
         {
             "name": "Mushroom Data Set",
             "loader": lambda: DataLoader.load_mushroom_data(),
+            "class_labels": ["edible", "poisonous"],
         },
         {
             "name": "Wisconsin Breast Cancer",
             "loader": lambda: DataLoader.load_breast_cancer_data(n_bins=5),
+            "class_labels": ["malignant", "benign"],
         },
         {
             "name": "Wine Quality - Red",
             "loader": lambda: DataLoader.load_wine_quality_red_data(n_bins=5),
+            "class_labels": ["low", "high"],
         },
         {
             "name": "Car Evaluation",
             "loader": lambda: DataLoader.load_car_data(),
+            "class_labels": ["unacc", "acc", "good", "vgood"],
         }
     ]
 
-    verifier = VerificationRunner()
-    runner = ExperimentRunner(n_repeats=25, n_splits=5)
-    visualizer = Visualizer(output_dir="./plots")
 
-    results_dir = "./results"
-    os.makedirs(results_dir, exist_ok=True)
+def run_data_generation(datasets_config, results_dir="./results"):
+    """Run all data generation experiments."""
+    print("\n" + "=" * 70)
+    print("STARTING DATA GENERATION")
+    print("=" * 70)
 
+    generator = DataGenerator(
+        n_repeats=25,
+        n_splits=5,
+        results_dir=results_dir
+    )
+
+    results = generator.generate_all(datasets_config, HybridSVMForest)
+
+    print("\n📊 Generated CSV files:")
+    for key, df in results.items():
+        print(f"  - {key}: {len(df)} rows")
+
+    return results
+
+
+def run_plot_generation(datasets_config, results_dir="./results", plots_dir="./plots"):
+    """Generate all plots from existing CSV results."""
+    print("\n" + "=" * 70)
+    print("STARTING PLOT GENERATION")
+    print("=" * 70)
+
+    # Extract class labels for confusion matrix heatmaps
+    class_labels = {}
+    for ds in datasets_config:
+        if "class_labels" in ds:
+            class_labels[ds["name"]] = ds["class_labels"]
+
+    plotter = PlotGenerator(output_dir=plots_dir, results_dir=results_dir)
+    results = plotter.generate_all_plots(class_labels=class_labels)
+
+    total_plots = sum(len(v) for v in results.values() if isinstance(v, list))
+    print(f"\n📈 Generated {total_plots} plots in {plots_dir}/")
+
+    return results
+
+
+def run_verification(datasets_config, results_dir="./results"):
+    """Run verification experiment comparing models."""
+    verifier = VerificationRunner(results_dir=results_dir)
     verifier.run(datasets_config)
 
-    print("\n" + "="*50)
-    print("STARTING MAIN EXPERIMENTS")
-    print("="*50)
 
-    results_exp_p_svm = []
-    results_exp_n_est = []
-    results_exp_C = []
+def get_default_paths():
+    """Get default results and plots directories relative to project root."""
+    return (
+        os.path.join(PROJECT_ROOT, "results"),
+        os.path.join(PROJECT_ROOT, "plots")
+    )
 
-    for ds in datasets_config:
-        ds_name = ds["name"]
-        print(f"\nProcessing Dataset: {ds_name}")
 
-        try:
-            loaded_data = ds["loader"]()
-            if len(loaded_data) == 3:
-                X_id3, X_svm, y = loaded_data
-            else:
-                X_id3, y = loaded_data
-                X_svm = X_id3
-        except Exception as e:
-            print(f"Skipping {ds_name} due to load error: {e}")
-            continue
+def main():
+    default_results_dir, default_plots_dir = get_default_paths()
 
-        print("   Running Exp 1: Impact of p_svm...")
-        fixed_n = 20
-        fixed_C = 1.0
-        for p in [0.0, 0.2, 0.5, 0.8, 1.0]:
-            stats = runner.run_cv(
-                X_id3, X_svm, y, HybridSVMForest,
-                {"estimator_count": fixed_n, "p_svm": p, "C": fixed_C}
-            )
-            results_exp_p_svm.append({
-                "dataset": ds_name, "model_type": "HybridSVMForest",
-                "p_svm": p, **stats
-            })
+    parser = argparse.ArgumentParser(description="Hybrid SVM-Forest Experiments")
+    parser.add_argument('--data-only', action='store_true',
+                        help='Generate only CSV results, no plots')
+    parser.add_argument('--plots-only', action='store_true',
+                        help='Generate only plots from existing CSVs')
+    parser.add_argument('--verification', action='store_true',
+                        help='Run verification experiment only')
+    parser.add_argument('--results-dir', type=str, default=default_results_dir,
+                        help='Directory for CSV results')
+    parser.add_argument('--plots-dir', type=str, default=default_plots_dir,
+                        help='Directory for plots')
 
-        print("   Running Exp 2: Impact of estimator_count...")
-        fixed_p_for_T = 0.5
-        for n in [10, 20, 50, 100]:
-            stats = runner.run_cv(
-                X_id3, X_svm, y, HybridSVMForest,
-                {"estimator_count": n, "p_svm": fixed_p_for_T, "C": fixed_C}
-            )
-            results_exp_n_est.append({
-                "dataset": ds_name, "model_type": "HybridSVMForest",
-                "estimator_count": n, **stats
-            })
+    args = parser.parse_args()
 
-        print("   Running Exp 3: Impact of C (Regularization)...")
-        fixed_p_for_C = 1.0
-        for c_val in [0.1, 1.0, 10.0, 50.0]:
-            stats = runner.run_cv(
-                X_id3, X_svm, y, HybridSVMForest,
-                {"estimator_count": fixed_n, "p_svm": fixed_p_for_C, "C": c_val}
-            )
-            results_exp_C.append({
-                "dataset": ds_name, "model_type": "HybridSVMForest",
-                "C": c_val, **stats
-            })
+    # Ensure directories exist
+    os.makedirs(args.results_dir, exist_ok=True)
+    os.makedirs(args.plots_dir, exist_ok=True)
 
-    if results_exp_p_svm:
-        df = pd.DataFrame(results_exp_p_svm)
+    datasets_config = get_datasets_config()
 
-        csv_path = os.path.join(results_dir, "results_impact_p_svm.csv")
-        df.to_csv(csv_path, index=False)
-        print(f"\nSaved CSV: {csv_path}")
+    if args.verification:
+        run_verification(datasets_config, args.results_dir)
+        return
 
-        print("\n--- Results: Impact of p_svm ---")
-        print(df[["dataset", "p_svm", "mean_acc"]].to_string(index=False))
-        visualizer.plot_experiment(df, "p_svm", "Share of SVM (p_svm)", "Impact of SVM Share")
+    if args.plots_only:
+        run_plot_generation(datasets_config, args.results_dir, args.plots_dir)
+        return
 
-    if results_exp_n_est:
-        df = pd.DataFrame(results_exp_n_est)
+    if args.data_only:
+        run_data_generation(datasets_config, args.results_dir)
+        return
 
-        csv_path = os.path.join(results_dir, "results_impact_estimator_count.csv")
-        df.to_csv(csv_path, index=False)
-        print(f"\nSaved CSV: {csv_path}")
+    # Default: run everything
+    run_verification(datasets_config, args.results_dir)
+    run_data_generation(datasets_config, args.results_dir)
+    run_plot_generation(datasets_config, args.results_dir, args.plots_dir)
 
-        print("\n--- Results: Impact of estimator_count ---")
-        print(df[["dataset", "estimator_count", "mean_acc"]].to_string(index=False))
-        visualizer.plot_experiment(df, "estimator_count", "Number of Estimators (T)", "Ensemble Size Stability")
-
-    if results_exp_C:
-        df = pd.DataFrame(results_exp_C)
-
-        csv_path = os.path.join(results_dir, "results_impact_C.csv")
-        df.to_csv(csv_path, index=False)
-        print(f"\nSaved CSV: {csv_path}")
-
-        print("\n--- Results: Impact of C parameter ---")
-        print(df[["dataset", "C", "mean_acc"]].to_string(index=False))
-        visualizer.plot_experiment(df, "C", "SVM Regularization (C)", "Impact of C parameter")
-
-    print(f"\nDone. Check the '{visualizer.output_dir}' directory.")
-
-    print("\n" + "="*50)
-    print("GENERATING CONFUSION MATRICES")
-    print("="*50)
-
-    cm_dir = os.path.join(results_dir, 'confusion_matrices')
-    os.makedirs(cm_dir, exist_ok=True)
-
-    for ds in datasets_config:
-        ds_name = ds["name"]
-        print(f"\nGenerating confusion matrix for {ds_name}...")
-
-        try:
-            loaded_data = ds["loader"]()
-            if len(loaded_data) == 3:
-                X_id3, X_svm, y = loaded_data
-            else:
-                X_id3, y = loaded_data
-                X_svm = X_id3
-
-            result = runner.run_single_with_confusion_matrix(
-                X_id3, X_svm, y, HybridSVMForest,
-                {"estimator_count": 50, "p_svm": 0.5, "C": 1.0},
-                random_state=42
-            )
-
-            cm = result["confusion_matrix"]
-            ds_name_clean = ds_name.replace(' ', '_').replace('-', '_')
-
-            cm_path = os.path.join(cm_dir, f"cm_final_{ds_name_clean}.csv")
-            np.savetxt(cm_path, cm, delimiter=',', fmt='%d')
-
-            print(f"  Accuracy: {result['accuracy']:.4f}")
-            print(f"  Confusion Matrix:\n{cm}")
-            print(f"  Saved to: {cm_path}")
-
-        except Exception as e:
-            print(f"  Error: {e}")
-
-    print("\nAll confusion matrices generated.")
+    print("\n" + "=" * 70)
+    print("✅ ALL EXPERIMENTS COMPLETED SUCCESSFULLY")
+    print("=" * 70)
+    print(f"\nResults saved to: {args.results_dir}/")
+    print(f"Plots saved to: {args.plots_dir}/")
 
 
 if __name__ == "__main__":

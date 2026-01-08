@@ -15,8 +15,9 @@ DatasetConfig = Dict[str, Any]
 
 
 class VerificationRunner:
-    def __init__(self, random_state: int = 42) -> None:
+    def __init__(self, random_state: int = 42, results_dir: str = "./results") -> None:
         self.random_state: int = random_state
+        self.results_dir: str = results_dir
 
     def run(self, datasets_config: List[DatasetConfig]) -> None:
         print("\n" + "=" * 90)
@@ -74,7 +75,7 @@ class VerificationRunner:
                 print(f"  Hybrid:\n{cm_hybrid}")
                 print(f"  sklearn RF:\n{cm_rf}")
 
-                cm_dir = os.path.join('results', 'confusion_matrices')
+                cm_dir = os.path.join(self.results_dir, 'confusion_matrices')
                 os.makedirs(cm_dir, exist_ok=True)
                 ds_name_clean = ds_name.replace(' ', '_').replace('-', '_')
                 np.savetxt(os.path.join(cm_dir, f"cm_id3_{ds_name_clean}.csv"), cm_id3, delimiter=',', fmt='%d')
@@ -98,6 +99,6 @@ class VerificationRunner:
         df_ver = pd.DataFrame(results)
         print("\n" + df_ver.to_string(index=False))
 
-        csv_path = os.path.join('results', "verification_results.csv")
+        csv_path = os.path.join(self.results_dir, "verification_results.csv")
         df_ver.to_csv(csv_path, index=False)
         print(f"\nVerification results saved to {csv_path}\n")
