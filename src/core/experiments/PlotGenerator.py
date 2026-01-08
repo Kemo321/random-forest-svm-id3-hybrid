@@ -14,6 +14,7 @@ from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import seaborn as sns
 
 
@@ -27,6 +28,9 @@ class PlotGenerator:
 
         # Set style for all plots
         plt.style.use('seaborn-v0_8-whitegrid')
+
+        # Formatter for decimal separator (period -> comma)
+        self.decimal_formatter = ticker.FuncFormatter(lambda x, p: f'{x:.2f}'.replace('.', ','))
 
     def _save_figure(self, fig: plt.Figure, filename: str, dpi: int = 150) -> str:
         """Save figure and return the path."""
@@ -87,6 +91,7 @@ class PlotGenerator:
             ax.set_ylabel("Accuracy", fontsize=12)
             ax.legend(loc='best')
             ax.set_xticks(subset["p_svm"])
+            ax.yaxis.set_major_formatter(self.decimal_formatter)
             ax.grid(True, linestyle=':', alpha=0.6)
 
             safe_name = ds_name.replace(" ", "_").replace("-", "_").lower()
@@ -145,6 +150,7 @@ class PlotGenerator:
             ax.set_ylabel("Accuracy", fontsize=12)
             ax.legend(loc='best')
             ax.set_xticks(subset["estimator_count"])
+            ax.yaxis.set_major_formatter(self.decimal_formatter)
             ax.grid(True, linestyle=':', alpha=0.6)
 
             safe_name = ds_name.replace(" ", "_").replace("-", "_").lower()
@@ -203,6 +209,7 @@ class PlotGenerator:
             ax.set_ylabel("Accuracy", fontsize=12)
             ax.legend(loc='best')
             ax.set_xscale('log')
+            ax.yaxis.set_major_formatter(self.decimal_formatter)
             ax.grid(True, linestyle=':', alpha=0.6)
 
             safe_name = ds_name.replace(" ", "_").replace("-", "_").lower()
@@ -362,13 +369,14 @@ class PlotGenerator:
                      fontsize=14, fontweight='bold')
         ax.set_xticks(x)
         ax.set_xticklabels(df["dataset"], rotation=15, ha='right')
+        ax.yaxis.set_major_formatter(self.decimal_formatter)
         ax.legend()
         ax.grid(True, axis='y', linestyle=':', alpha=0.6)
 
         # Add delta values as text
         for i, (train, test, delta) in enumerate(zip(df["train_acc_mean"], df["test_acc_mean"], df["delta"])):
             max_y = max(train, test)
-            ax.annotate(f'Δ={delta:.3f}', xy=(i, max_y + 0.02),
+            ax.annotate(f'Δ={delta:.3f}'.replace('.', ','), xy=(i, max_y + 0.02),
                        ha='center', fontsize=9, color='gray')
 
         plt.tight_layout()
@@ -389,14 +397,15 @@ class PlotGenerator:
                          color=colors, alpha=0.8, edgecolor='black')
 
             ax.set_ylabel("Accuracy", fontsize=12)
-            ax.set_title(f"Train vs Test Accuracy - {ds_name}\n(Δ = {row['delta']:.4f})",
+            ax.set_title(f"Train vs Test Accuracy - {ds_name}\n(Δ = {row['delta']:.4f})".replace('.', ','),
                         fontsize=12, fontweight='bold')
             ax.set_ylim(0, 1.1)
+            ax.yaxis.set_major_formatter(self.decimal_formatter)
             ax.grid(True, axis='y', linestyle=':', alpha=0.6)
 
             # Add value labels on bars
             for bar, mean, std in zip(bars, means, stds):
-                ax.annotate(f'{mean:.4f}\n±{std:.4f}',
+                ax.annotate(f'{mean:.4f}\n±{std:.4f}'.replace('.', ','),
                            xy=(bar.get_x() + bar.get_width()/2, mean),
                            ha='center', va='bottom', fontsize=10)
 
