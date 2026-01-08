@@ -186,20 +186,36 @@ Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten de
         \toprule
         \textbf{$p_{svm}$ [\%]} & \textbf{Średnia Dokładność} & \textbf{Odch. Std.} & \textbf{Min} & \textbf{Max} \\
         \midrule
-        0 (Czyste ID3) & 0,935 & 0,021 & 0,910 & 0,965 \\
-        20 & 0,948 & 0,018 & 0,920 & 0,970 \\
-        \textbf{50} & \textbf{0,962} & \textbf{0,015} & \textbf{0,935} & \textbf{0,985} \\
-        80 & 0,958 & 0,014 & 0,930 & 0,980 \\
-        100 (Czyste SVM) & 0,955 & 0,012 & 0,935 & 0,975 \\
+        0 (Czyste ID3) & 0,945 & 0,006 & 0,938 & 0,958 \\
+        20 & 0,954 & 0,005 & 0,942 & 0,965 \\
+        \textbf{50} & \textbf{0,960} & \textbf{0,005} & \textbf{0,949} & \textbf{0,968} \\
+        80 & 0,959 & 0,002 & 0,954 & 0,963 \\
+        100 (Czyste SVM) & 0,957 & 0,004 & 0,951 & 0,963 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
+\begin{table}[H]
+    \centering
+    \caption{Szczegółowe wyniki dla zbioru \textbf{Wine Quality} (średnia z 25 uruchomień)}
+    \begin{tabular}{ccccc}
+        \toprule
+        \textbf{$p_{svm}$ [\%]} & \textbf{Średnia Dokładność} & \textbf{Odch. Std.} & \textbf{Min} & \textbf{Max} \\
+        \midrule
+        \textbf{0 (Czyste ID3)} & \textbf{0,725} & \textbf{0,006} & \textbf{0,713} & \textbf{0,734} \\
+        20 & 0,712 & 0,012 & 0,686 & 0,730 \\
+        50 & 0,689 & 0,014 & 0,658 & 0,717 \\
+        80 & 0,671 & 0,013 & 0,640 & 0,691 \\
+        100 (Czyste SVM) & 0,662 & 0,012 & 0,636 & 0,682 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
-    extbf{Wnioski:}
+\textbf{Wnioski:}
 \begin{itemize}
-    \item Na zbiorze Breast Cancer (tab. 2, rys. 1b) hybrydyzacja przyniosła najlepsze rezultaty. Mieszanka 50/50 pozwoliła uzyskać wynik (0,962) wyższy niż czyste metody bazowe. Wskazuje to, że ensemble korzysta z różnorodności błędów popełnianych przez drzewa (nieliniowe) i SVM (liniowe).
-    \item Na zbiorze Car Evaluation (rys. 1d) odnotowano drastyczny spadek jakości wraz ze wzrostem udziału SVM (z 0,94 dla ID3 do 0,78 dla SVM). Wynika to z faktu, że relacje w tym zbiorze są silnie nieliniowe (\textit{XOR}-podobne) i kategoryczne, co jest naturalnym środowiskiem dla drzew, a trudnym dla liniowego SVM.
+    \item Na zbiorze Breast Cancer (tab.~3, rys.~\ref{fig:psvm}b) hybrydyzacja przyniosła najlepsze rezultaty. Optimum osiągnięto dla $p_{svm}=50\%$ (dokładność 0,960), co jest wynikiem wyższym niż dla czystego ID3 (0,945) oraz czystego SVM (0,957). Wskazuje to, że ensemble korzysta z różnorodności błędów popełnianych przez drzewa (nieliniowe granice decyzyjne) i SVM (liniowe granice).
+    \item Na zbiorze Wine Quality (tab.~4, rys.~\ref{fig:psvm}c) obserwujemy odwrotną tendencję -- najlepsze wyniki uzyskano dla czystego ID3 ($p_{svm}=0\%$, dokładność 0,725), a zwiększanie udziału SVM systematycznie pogarszało jakość klasyfikacji (spadek do 0,662 dla $p_{svm}=100\%$). Wynika to z silnego niezbalansowania klas w tym zbiorze oraz faktu, że liniowy SVM ma trudności z separacją klas w przestrzeni cech ciągłych po dyskretyzacji.
+    \item Na zbiorze Car Evaluation (rys.~\ref{fig:psvm}d) odnotowano podobny trend jak dla Wine Quality -- drastyczny spadek jakości wraz ze wzrostem udziału SVM (z 0,829 dla ID3 do 0,796 dla SVM). Relacje w tym zbiorze są silnie nieliniowe i kategoryczne, co jest naturalnym środowiskiem dla drzew decyzyjnych.
 \end{itemize}
 
 \subsection{Scenariusz 2: Wpływ liczby estymatorów ($T$)}
