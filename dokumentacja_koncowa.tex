@@ -135,29 +135,25 @@ Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten de
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Wykres dla Mushroom - linia płaska/lekko rosnąca blisko 1.0]
-        \includegraphics[width=\textwidth]{example-image-a}
+        \includegraphics[width=\textwidth]{plots/scenario1_p_svm_mushroom_data_set.png}
         \caption{Mushroom}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Wykres dla Breast Cancer - optimum przy 0.5 lub 0.8]
-        \includegraphics[width=\textwidth]{example-image-b}
+        \includegraphics[width=\textwidth]{plots/scenario1_p_svm_wisconsin_breast_cancer.png}
         \caption{Breast Cancer}
     \end{subfigure}
 
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Wykres dla Wine Quality - niska skuteczność ogólna]
-        \includegraphics[width=\textwidth]{example-image-c}
+        \includegraphics[width=\textwidth]{plots/scenario1_p_svm_wine_quality___red.png}
         \caption{Wine Quality}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Wykres dla Car Eval - wyraźny spadek przy wzroście SVM]
-        \includegraphics[width=\textwidth]{example-image-a}
+        \includegraphics[width=\textwidth]{plots/scenario1_p_svm_car_evaluation.png}
         \caption{Car Evaluation}
     \end{subfigure}
     \caption{Średnia dokładność w zależności od udziału SVM ($p_{svm}$) dla $T=20$ oraz $C=1{,}0$. Słupki błędów oznaczają odchylenie standardowe.}
@@ -194,29 +190,25 @@ Zbadano wpływ rozmiaru lasu $T \in \{10, 20, 50, 100\}$ na stabilność i jako�
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Krzywa zbieżności dla Mushroom]
-        \includegraphics[width=\textwidth]{example-image-a}
+        \includegraphics[width=\textwidth]{plots/scenario2_estimator_count_mushroom_data_set.png}
         \caption{Mushroom}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Krzywa zbieżności dla Breast Cancer]
-        \includegraphics[width=\textwidth]{example-image-b}
+        \includegraphics[width=\textwidth]{plots/scenario2_estimator_count_wisconsin_breast_cancer.png}
         \caption{Breast Cancer}
     \end{subfigure}
 
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Krzywa zbieżności dla Wine Quality]
-        \includegraphics[width=\textwidth]{example-image-c}
+        \includegraphics[width=\textwidth]{plots/scenario2_estimator_count_wine_quality___red.png}
         \caption{Wine Quality}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Krzywa zbieżności dla Car Evaluation]
-        \includegraphics[width=\textwidth]{example-image-a}
+        \includegraphics[width=\textwidth]{plots/scenario2_estimator_count_car_evaluation.png}
         \caption{Car Evaluation}
     \end{subfigure}
     \caption{Wpływ liczby estymatorów ($T$) na średnią dokładność dla różnych zbiorów danych (dla $p_{svm}=50\%$ oraz $C=1{,}0$).}
@@ -234,29 +226,25 @@ Zbadano wpływ parametru $C \in \{0{,}1; 1; 10; 50\}$ dla części SVM (przy ust
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Zależność accuracy od C dla Mushroom]
-        \includegraphics[width=\textwidth]{example-image-a}
+        \includegraphics[width=\textwidth]{plots/scenario3_C_mushroom_data_set.png}
         \caption{Mushroom}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Zależność accuracy od C dla Breast Cancer]
-        \includegraphics[width=\textwidth]{example-image-b}
+        \includegraphics[width=\textwidth]{plots/scenario3_C_wisconsin_breast_cancer.png}
         \caption{Breast Cancer}
     \end{subfigure}
 
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Zależność accuracy od C dla Wine Quality]
-        \includegraphics[width=\textwidth]{example-image-c}
+        \includegraphics[width=\textwidth]{plots/scenario3_C_wine_quality___red.png}
         \caption{Wine Quality}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Zależność accuracy od C dla Car Evaluation]
-        \includegraphics[width=\textwidth]{example-image-a}
+        \includegraphics[width=\textwidth]{plots/scenario3_C_car_evaluation.png}
         \caption{Car Evaluation}
     \end{subfigure}
     \caption{Wpływ parametru regularyzacji SVM ($C$) na średnią dokładność (dla $T=20$ oraz $p_{svm}=100\%$; wartości $C \in \{0{,}1; 1; 10; 50\}$).}
@@ -288,32 +276,28 @@ Poniżej przedstawiono zagregowane macierze pomyłek (suma z 25 uruchomień) dla
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Heatmapa (macierz pomyłek) dla Mushroom]
-        \includegraphics[width=\textwidth]{example-image-a}
+        \includegraphics[width=\textwidth]{plots/heatmap_Mushroom_Data_Set.png}
         \caption{Mushroom}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Heatmapa (macierz pomyłek) dla Breast Cancer]
-        \includegraphics[width=\textwidth]{example-image-b}
+        \includegraphics[width=\textwidth]{plots/heatmap_Wisconsin_Breast_Cancer.png}
         \caption{Breast Cancer}
     \end{subfigure}
 
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Heatmapa (macierz pomyłek) dla Wine Quality]
-        \includegraphics[width=\textwidth]{example-image-c}
+        \includegraphics[width=\textwidth]{plots/heatmap_Wine_Quality___Red.png}
         \caption{Wine Quality}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        % [Placeholder: Heatmapa (macierz pomyłek) dla Car Evaluation]
-        \includegraphics[width=\textwidth]{example-image-a}
+        \includegraphics[width=\textwidth]{plots/heatmap_Car_Evaluation.png}
         \caption{Car Evaluation}
     \end{subfigure}
-    \caption{Zagregowane macierze pomyłek (heatmapy) dla $T=50$, $p_{svm}=50\%$, $C=1{,}0$ (mock danych).}
+    \caption{Zagregowane macierze pomyłek (heatmapy) dla $T=50$, $p_{svm}=50\%$, $C=1{,}0$.}
 \end{figure}
 
 Wnioski:
@@ -322,57 +306,34 @@ Na zbiorze \textit{Car Evaluation} najwięcej pomyłek występuje przy klasyfika
 \section{Analiza nadmiernego dopasowania (Overfitting)}
 W celu oceny zjawiska przeuczenia porównano dokładność na zbiorze treningowym i testowym.
 
-\begin{table}[H]
+\begin{figure}[H]
     \centering
-    \caption{Porównanie dokładności Train vs Test (Mushroom, $T=50$, $p_{svm}=50\%$, $C=1{,}0$)}
-    \begin{tabular}{ccc}
-        	oprule
-        	extbf{Zbiór} & \textbf{Dokładność} & \textbf{Komentarz} \\
-        \midrule
-        Treningowy & 1,000 & Bardzo wysokie dopasowanie \\
-        Testowy & 1,000 & Brak istotnego spadku \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{plots/overfitting_mushroom_data_set.png}
+        \caption{Mushroom}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{plots/overfitting_wisconsin_breast_cancer.png}
+        \caption{Breast Cancer}
+    \end{subfigure}
 
-\begin{table}[H]
-    \centering
-    \caption{Porównanie dokładności Train vs Test (Breast Cancer, $T=50$, $p_{svm}=50\%$, $C=1{,}0$)}
-    \begin{tabular}{ccc}
-        	oprule
-        	extbf{Zbiór} & \textbf{Dokładność} & \textbf{Komentarz} \\
-        \midrule
-        Treningowy & 0,990 & Wysokie dopasowanie \\
-        Testowy & 0,962 & Umiarkowany spadek \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\begin{table}[H]
-    \centering
-    \caption{Porównanie dokładności Train vs Test (Wine Quality, $T=50$, $p_{svm}=50\%$, $C=1{,}0$)}
-    \begin{tabular}{ccc}
-        	oprule
-        	extbf{Zbiór} & \textbf{Dokładność} & \textbf{Komentarz} \\
-        \midrule
-        Treningowy & 0,780 & Wysokie dopasowanie \\
-        Testowy & 0,670 & Widoczny spadek \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\begin{table}[H]
-    \centering
-    \caption{Porównanie dokładności Train vs Test (Car Evaluation, $T=50$, $p_{svm}=50\%$, $C=1{,}0$)}
-    \begin{tabular}{ccc}
-        \toprule
-        \textbf{Zbiór} & \textbf{Dokładność} & \textbf{Komentarz} \\
-        \midrule
-        Treningowy & 0,985 & Wysokie dopasowanie \\
-        Testowy & 0,842 & Spadek o ok. 14 p.p. \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{plots/overfitting_wine_quality___red.png}
+        \caption{Wine Quality}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{plots/overfitting_car_evaluation.png}
+        \caption{Car Evaluation}
+    \end{subfigure}
+    \caption{Porównanie dokładności na zbiorze treningowym i testowym (Train vs Test) dla $T=50$, $p_{svm}=50\%$, $C=1{,}0$.}
+    \label{fig:overfitting}
+\end{figure}
 
 Wniosek: Obserwujemy wyraźne nadmierne dopasowanie. Drzewa ID3 mają tendencję do budowania bardzo głębokich struktur (brak przycinania w implementacji). Zastosowanie lasu (Bagging) zmniejszyło ten efekt względem pojedynczego drzewa (gdzie różnica wynosiła ponad 20 p.p.), ale go nie wyeliminowało. Sugeruje to konieczność wprowadzenia ograniczenia głębokości drzewa (\texttt{max\_depth}) w przyszłych pracach.
 
