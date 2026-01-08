@@ -65,19 +65,16 @@ Algorytm zespołu wprowadza losowość na dwóch poziomach: danych (Bagging) ora
     \begin{itemize}
         \item Losowana jest próba bootstrapowa $D_i$ (ze zwracaniem) o liczności równej liczności zbioru oryginalnego.
         \item Losowany jest podzbiór $m$ cech spośród wszystkich dostępnych (\textit{Random Subspace}), który jest wykorzystywany przez dany model.
-        \item Z prawdopodobieństwem $p_{svm}$ trenowany jest klasyfikator SVM, w przeciwnym razie ($1-p_{svm}$) budowane jest drzewo ID3.
+        \item Z prawdopodobieństwem $p_{svm}$ trenowany jest klasyfikator SVM (na danych ciągłych/One-Hot), w przeciwnym razie ($1-p_{svm}$) budowane jest drzewo ID3 (na danych dyskretnych).
     \end{itemize}
     \item Predykcja dla nowej próbki odbywa się poprzez głosowanie większościowe wszystkich modeli zgromadzonych w lesie.
 \end{enumerate}
 
 \subsection{Odstępstwa i doprecyzowanie implementacji}
-W stosunku do pierwotnych założeń wprowadzono jedno istotne doprecyzowanie wynikające z fazy implementacji:
+W stosunku do pierwotnych założeń wprowadzono istotne doprecyzowania wynikające z fazy implementacji:
 \begin{itemize}
-    \item Random Subspace Method:
-
-    Aby zapewnić różnorodność klasyfikatorów, wprowadzono losowanie podzbioru cech dla każdego estymatora w lesie.
-
-    Wartość $m$ (liczba cech używanych przez pojedynczy klasyfikator) ustawiono na $\sqrt{M}$, gdzie $M$ to całkowita liczba cech w zbiorze danych. Pozwoliło to na zwiększenie różnorodności modeli i poprawę ogólnej wydajności lasu.
+    \item \textbf{Random Subspace Method:} Aby zapewnić różnorodność klasyfikatorów, wprowadzono losowanie podzbioru cech dla każdego estymatora. Wartość $m$ (liczba cech używanych przez pojedynczy klasyfikator) domyślnie ustawiono na $\sqrt{M}$ (gdzie $M$ to liczba cech), z dynamicznym dostosowaniem dla zbiorów o bardzo małej liczbie atrybutów.
+    \item \textbf{Obsługa danych heterogenicznych:} Las obsługuje jednocześnie dwie reprezentacje danych: dyskretną (dla ID3) oraz ciągłą/zakodowaną One-Hot (dla SVM), przekazując do konkretnego estymatora odpowiedni format danych wejściowych.
 \end{itemize}
 
 \subsection{Weryfikacja poprawności (Testy)}
