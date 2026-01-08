@@ -14,7 +14,7 @@ from typing import Dict, Any, Type, List, Tuple
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator
-from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, confusion_matrix
 
 
@@ -113,57 +113,70 @@ class DataGenerator:
             "max_acc": float(np.max(accuracies)),
         }
 
-    def run_train_test_evaluation(
+    def run_cv_with_train_test(
         self,
         X_id3: np.ndarray,
         X_svm: np.ndarray,
         y: np.ndarray,
         model_class: Type[BaseEstimator],
         model_params: Dict[str, Any],
-        test_size: float = 0.3,
     ) -> Dict[str, Any]:
         """
-        Run train/test evaluation to analyze overfitting.
+        Run cross-validation with both train and test accuracy measurement.
+        Used for overfitting analysis and confusion matrix generation.
 
-        Returns dict with: train_acc, test_acc, delta, confusion_matrix
+        Performs n_repeats independent CV runs, each with n_splits folds.
+        Returns aggregated train/test accuracies and confusion matrix.
         """
-        train_accs: List[float] = []
-        test_accs: List[float] = []
+        train_accs: List[float] = []  # Per-repeat mean train accuracy
+        test_accs: List[float] = []   # Per-repeat mean test accuracy
         all_y_test: List[np.ndarray] = []
         all_preds: List[np.ndarray] = []
         base_seed: int = 42
 
         for i in range(self.n_repeats):
             current_seed: int = base_seed + i
-
-            X_id3_tr, X_id3_te, y_train, y_test = train_test_split(
-                X_id3, y, test_size=test_size, random_state=current_seed, stratify=y
-            )
-            X_svm_tr, X_svm_te, _, _ = train_test_split(
-                X_svm, y, test_size=test_size, random_state=current_seed, stratify=y
+            skf = StratifiedKFold(
+                n_splits=self.n_splits,
+                shuffle=True,
+                random_state=current_seed
             )
 
-            if "random_state" in model_class.__init__.__code__.co_varnames:
-                model = model_class(**model_params, random_state=current_seed)
-            else:
-                model = model_class(**model_params)
+            fold_train_accs: List[float] = []
+            fold_test_accs: List[float] = []
 
-            model.fit((X_id3_tr, X_svm_tr), y_train)
+            for train_index, test_index in skf.split(X_id3, y):
+                y_train, y_test = y[train_index], y[test_index]
 
-            # Train accuracy
-            train_preds = model.predict((X_id3_tr, X_svm_tr))
-            train_acc = accuracy_score(y_train, train_preds)
-            train_accs.append(train_acc)
+                X_train_tuple = (X_id3[train_index], X_svm[train_index])
+                X_test_tuple = (X_id3[test_index], X_svm[test_index])
 
-            # Test accuracy
-            test_preds = model.predict((X_id3_te, X_svm_te))
-            test_acc = accuracy_score(y_test, test_preds)
-            test_accs.append(test_acc)
+                if "random_state" in model_class.__init__.__code__.co_varnames:
+                    model = model_class(**model_params, random_state=current_seed)
+                else:
+                    model = model_class(**model_params)
 
-            all_y_test.append(y_test)
-            all_preds.append(test_preds)
+                model.fit(X_train_tuple, y_train)
 
-        # Aggregate confusion matrix from all runs
+                # Train accuracy (on training fold)
+                train_preds = model.predict(X_train_tuple)
+                train_acc = accuracy_score(y_train, train_preds)
+                fold_train_accs.append(train_acc)
+
+                # Test accuracy (on test fold)
+                test_preds = model.predict(X_test_tuple)
+                test_acc = accuracy_score(y_test, test_preds)
+                fold_test_accs.append(test_acc)
+
+                # Collect for confusion matrix
+                all_y_test.append(y_test)
+                all_preds.append(test_preds)
+
+            # Mean accuracy for this repeat (across folds)
+            train_accs.append(float(np.mean(fold_train_accs)))
+            test_accs.append(float(np.mean(fold_test_accs)))
+
+        # Aggregate confusion matrix from all folds of all repeats
         y_test_combined = np.concatenate(all_y_test)
         preds_combined = np.concatenate(all_preds)
         cm = confusion_matrix(y_test_combined, preds_combined)
@@ -174,11 +187,16 @@ class DataGenerator:
         return {
             "train_acc_mean": mean_train,
             "train_acc_std": float(np.std(train_accs)),
+            "train_acc_min": float(np.min(train_accs)),
+            "train_acc_max": float(np.max(train_accs)),
             "test_acc_mean": mean_test,
             "test_acc_std": float(np.std(test_accs)),
+            "test_acc_min": float(np.min(test_accs)),
+            "test_acc_max": float(np.max(test_accs)),
             "delta": mean_train - mean_test,
             "confusion_matrix": cm,
         }
+
 
     def generate_scenario1_results(
         self,
@@ -419,7 +437,7 @@ class DataGenerator:
                     "C": self.COMMON_C
                 }
 
-                eval_result = self.run_train_test_evaluation(
+                eval_result = self.run_cv_with_train_test(
                     X_id3, X_svm, y, model_class, params
                 )
 
@@ -430,8 +448,12 @@ class DataGenerator:
                     "C": self.COMMON_C,
                     "train_acc_mean": eval_result["train_acc_mean"],
                     "train_acc_std": eval_result["train_acc_std"],
+                    "train_acc_min": eval_result["train_acc_min"],
+                    "train_acc_max": eval_result["train_acc_max"],
                     "test_acc_mean": eval_result["test_acc_mean"],
                     "test_acc_std": eval_result["test_acc_std"],
+                    "test_acc_min": eval_result["test_acc_min"],
+                    "test_acc_max": eval_result["test_acc_max"],
                     "delta": eval_result["delta"],
                 })
 
