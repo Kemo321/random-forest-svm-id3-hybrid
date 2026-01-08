@@ -87,7 +87,7 @@ Aby upewnić się, że implementacja nie zawiera błędów, przeprowadzono:
 \section{Metodyka badań}
 
 \subsection{Zbiory danych}
-Do badań wykorzystano cztery zbiory danych o zróżnicowanej charakterystyce (tabela~\ref{tab:zbiory}). Zbiór \textit{Mushroom} pełni funkcję weryfikacyjną. Zbiory ciągłe (\textit{Breast Cancer}, \textit{Wine}) zostały poddane dyskretyzacji dla algorytmu ID3, a zbiory dyskretne (\textit{Car}) zakodowane metodą One-Hot dla SVM.
+Do badań wykorzystano cztery zbiory danych o zróżnicowanej charakterystyce (tabela~\ref{tab:zbiory}). Zbiór \textit{Mushroom} pełni funkcję weryfikacyjną. Zbiory ciągłe (\textit{Breast Cancer}, \textit{Wine}) zostały poddane dyskretyzacji dla algorytmu ID3 (metoda kubełkowa), natomiast zbiory dyskretne (\textit{Mushroom}, \textit{Car Evaluation}) zostały zakodowane metodą One-Hot Encoding na potrzeby klasyfikatora SVM.
 
 \begin{table}[H]
     \centering
@@ -105,20 +105,21 @@ Do badań wykorzystano cztery zbiory danych o zróżnicowanej charakterystyce (t
     \end{tabular}
 \end{table}
 
-Liczebność klas w zbiorach:
+Szczegółowy rozkład klas w zbiorach:
 \begin{itemize}
-    \item Mushroom: 4208 (edible), 3916 (poisonous) - zbalansowany.
-    \item Breast Cancer: 357 (benign), 212 (malignant) - lekko niezbalansowany.
-    \item Wine Quality: 744 (low quality), 855 (high quality) - lekko niezbalansowany. Zastosowano binaryzację na podstawie progu jakości \texttt{quality} $\geq 6$.
-    \item Car Evaluation: 1210 (unacc), 384 (acc), 69 (good), 65 (vgood) - bardzo niezbalansowany
+    \item \textbf{Mushroom:} 4208 (edible), 3916 (poisonous) -- zbiór zbalansowany.
+    \item \textbf{Wisconsin Breast Cancer:} 357 (benign), 212 (malignant) -- zbiór lekko niezbalansowany.
+    \item \textbf{Wine Quality (Red):} 744 (low quality), 855 (high quality) -- zbiór lekko niezbalansowany. Zastosowano binaryzację etykiet, przyjmując próg jakości \texttt{quality} $\geq 6$ jako klasę pozytywną.
+    \item \textbf{Car Evaluation:} 1210 (unacc), 384 (acc), 69 (good), 65 (vgood) -- zbiór silnie niezbalansowany.
 \end{itemize}
+
 \subsection{Procedura eksperymentalna}
-Każdy eksperyment przeprowadzono zgodnie z poniższymi zasadami, aby zapewnić rzetelność wyników:
+Każdy eksperyment przeprowadzono zgodnie z poniższymi zasadami, aby zapewnić rzetelność i powtarzalność wyników:
 \begin{itemize}
-    \item Weryfikacja poprawności: Przed głównymi eksperymentami przeprowadzono testy jednostkowe i porównania z implementacjami referencyjnymi.
-    \item Wielokrotne uruchomienia: Każdy punkt pomiarowy to średnia z 25 niezależnych uruchomień (różne ziarna losowości dla podziału zbioru i inicjalizacji lasu).
-    \item Podział danych: Zastosowano 5-krotną walidację krzyżową (5-fold Stratified CV).
-    \item Miary jakości: Raportowana jest średnia dokładność (Accuracy), odchylenie standardowe, najlepszy i najgorszy wynik oraz zagregowane macierze pomyłek.
+    \item \textbf{Weryfikacja poprawności:} Przed przystąpieniem do głównych eksperymentów wykonano testy jednostkowe oraz porównano wyniki autorskiej implementacji z metodami referencyjnymi (biblioteka \texttt{scikit-learn}).
+    \item \textbf{Wielokrotne uruchomienia:} Każdy punkt pomiarowy stanowi średnią z 25 niezależnych uruchomień algorytmu. W każdej iteracji stosowano inne ziarno losowości (\texttt{random\_state}) wpływające na podział zbioru, bootstrap oraz dobór cech.
+    \item \textbf{Podział danych:} Zastosowano 5-krotną walidację krzyżową (5-fold Stratified CV), co w połączeniu z 25 powtórzeniami daje łącznie 125 prób trenowania dla każdej konfiguracji parametrów.
+    \item \textbf{Miary jakości:} Raportowana jest średnia dokładność (Accuracy), odchylenie standardowe, wynik minimalny i maksymalny oraz zagregowane macierze pomyłek (sumowane ze wszystkich uruchomień).
 \end{itemize}
 
 \section{Wyniki eksperymentów}
