@@ -213,6 +213,7 @@ Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten de
 
 \textbf{Wnioski:}
 \begin{itemize}
+    \item Na zbiorze Mushroom (rys.~\ref{fig:psvm}a) obserwujemy odwrotny trend niż na pozostałych zbiorach -- zwiększanie udziału SVM poprawia wyniki. Dla czystego ID3 ($p_{svm}=0\%$) dokładność wynosi jedynie 0,970, podczas gdy dla czystego SVM ($p_{svm}=100\%$) osiągamy 0,9999. Zbiór ten jest liniowo separowalny, co stanowi idealne środowisko dla SVM.
     \item Na zbiorze Breast Cancer (tab.~3, rys.~\ref{fig:psvm}b) hybrydyzacja przyniosła najlepsze rezultaty. Optimum osiągnięto dla $p_{svm}=50\%$ (dokładność 0,960), co jest wynikiem wyższym niż dla czystego ID3 (0,945) oraz czystego SVM (0,957). Wskazuje to, że ensemble korzysta z różnorodności błędów popełnianych przez drzewa (nieliniowe granice decyzyjne) i SVM (liniowe granice).
     \item Na zbiorze Wine Quality (tab.~4, rys.~\ref{fig:psvm}c) obserwujemy tendencję spadkową -- najlepsze wyniki uzyskano dla czystego ID3 ($p_{svm}=0\%$, dokładność 0,744), a zwiększanie udziału SVM stopniowo pogarszało jakość klasyfikacji (spadek do 0,708 dla $p_{svm}=100\%$). Liniowy SVM ma trudności z separacją klas w przestrzeni cech ciągłych po dyskretyzacji.
     \item Na zbiorze Car Evaluation (rys.~\ref{fig:psvm}d) odnotowano podobny trend jak dla Wine Quality -- spadek jakości wraz ze wzrostem udziału SVM (z 0,829 dla ID3 do 0,796 dla SVM). Relacje w tym zbiorze są silnie nieliniowe i kategoryczne, co jest naturalnym środowiskiem dla drzew decyzyjnych.
@@ -252,7 +253,7 @@ Zbadano wpływ rozmiaru lasu $T \in \{10, 20, 50, 100\}$ na stabilność i jako�
 
 \textbf{Wnioski:}
 \begin{itemize}
-    \item Na zbiorze Mushroom (rys.~\ref{fig:estimator_count}a) obserwujemy szybką zbieżność do optimum -- już dla $T=20$ osiągamy dokładność 0,9997, a dalsze zwiększanie liczby estymatorów nie przynosi istotnej poprawy.
+    \item Na zbiorze Mushroom (rys.~\ref{fig:estimator_count}a) obserwujemy szybką zbieżność do optimum -- już dla $T=10$ osiągamy dokładność 0,997, a dla $T=20$ wynosi ona 0,9997. Dalsze zwiększanie liczby estymatorów nie przynosi istotnej poprawy (0,9999 dla $T=50$ i $T=100$).
     \item Na zbiorze Breast Cancer (rys.~\ref{fig:estimator_count}b) zwiększanie $T$ powoduje stopniowy wzrost dokładności (z 0,958 dla $T=10$ do 0,961 dla $T=100$) oraz zmniejszenie odchylenia standardowego (z 0,007 do 0,003), co potwierdza teorię redukcji wariancji w ensemble learning.
     \item Na zbiorze Wine Quality (rys.~\ref{fig:estimator_count}c) zwiększanie liczby estymatorów poprawia dokładność (z 0,717 dla $T=10$ do 0,744 dla $T=100$) oraz zmniejsza wariancję (odchylenie standardowe spada z 0,015 do 0,008). Na zbiorze Car Evaluation (rys.~\ref{fig:estimator_count}d) dokładność stabilizuje się na poziomie 0,812, a odchylenie standardowe spada z 0,017 do 0,010.
     \item Stabilizacja wyników następuje w okolicy $T=50$. Dalsze zwiększanie liczby estymatorów nie poprawia istotnie wyniku, a liniowo wydłuża czas obliczeń.
@@ -385,8 +386,9 @@ Zrealizowany projekt pozwolił na zbadanie właściwości hybrydowego lasu klasy
 \begin{enumerate}
     \item \textbf{Skuteczność hybrydyzacji zależy od charakterystyki danych:}
     \begin{itemize}
+        \item Na zbiorze Mushroom (cechy kategoryczne, liniowo separowalny) najlepsze wyniki uzyskano dla czystego SVM ($p_{svm}=100\%$, dokładność 0,9999), podczas gdy czyste ID3 osiągało jedynie 0,970.
         \item Na zbiorze Breast Cancer (cechy ciągłe, częściowo separowalne liniowo) hybrydyzacja przyniosła najlepsze rezultaty -- optimum dla $p_{svm}=50\%$ (dokładność 0,960) przewyższyło zarówno czyste ID3 (0,945), jak i czyste SVM (0,957).
-        \item Na zbiorach z cechami kategorycznymi (Car Evaluation) oraz Wine Quality dodanie SVM pogarszało wyniki -- spadek dokładności odpowiednio z 0,829 do 0,796 oraz z 0,744 do 0,708 przy wzroście $p_{svm}$ od 0\% do 100\%.
+        \item Na zbiorach z cechami kategorycznymi i nieliniowymi zależnościami (Car Evaluation) oraz Wine Quality dodanie SVM pogarszało wyniki -- spadek dokładności odpowiednio z 0,829 do 0,796 oraz z 0,744 do 0,708 przy wzroście $p_{svm}$ od 0\% do 100\%.
     \end{itemize}
 
     \item \textbf{Poprawność implementacji:} Autorska implementacja ID3 osiąga identyczne wyniki jak \\ \texttt{DecisionTreeClassifier} ze \texttt{scikit-learn} na zbiorach Mushroom (1,000) i Breast Cancer (0,924), co potwierdza poprawność algorytmu.
