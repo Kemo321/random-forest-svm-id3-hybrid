@@ -250,9 +250,13 @@ Zbadano wpływ rozmiaru lasu $T \in \{10, 20, 50, 100\}$ na stabilność i jako�
     \label{fig:estimator_count}
 \end{figure}
 
-
-    extbf{Wnioski:}
-Zgodnie z teorią \textit{ensemble learning}, zwiększanie liczby estymatorów zmniejsza wariancję modelu. Stabilizacja wyników następuje w okolicy $T=50$. Dalsze zwiększanie liczby estymatorów nie poprawia istotnie wyniku (zysk rzędu 0,001), a liniowo wydłuża czas obliczeń.
+\textbf{Wnioski:}
+\begin{itemize}
+    \item Na zbiorze Mushroom (rys.~\ref{fig:estimator_count}a) obserwujemy szybką zbieżność do optimum -- już dla $T=20$ osiągamy dokładność 0,9997, a dalsze zwiększanie liczby estymatorów nie przynosi istotnej poprawy.
+    \item Na zbiorze Breast Cancer (rys.~\ref{fig:estimator_count}b) zwiększanie $T$ powoduje stopniowy wzrost dokładności (z 0,958 dla $T=10$ do 0,961 dla $T=100$) oraz zmniejszenie odchylenia standardowego (z 0,007 do 0,003), co potwierdza teorię redukcji wariancji w ensemble learning.
+    \item Na zbiorach Wine Quality (rys.~\ref{fig:estimator_count}c) oraz Car Evaluation (rys.~\ref{fig:estimator_count}d) zwiększanie liczby estymatorów nie poprawia dokładności (stabilizacja na poziomie odpowiednio 0,684 i 0,812), ale znacząco zmniejsza wariancję wyników -- odchylenie standardowe spada z 0,019 do 0,004 dla Wine Quality i z 0,017 do 0,010 dla Car Evaluation.
+    \item Stabilizacja wyników następuje w okolicy $T=50$. Dalsze zwiększanie liczby estymatorów nie poprawia istotnie wyniku, a liniowo wydłuża czas obliczeń.
+\end{itemize}
 
 \subsection{Scenariusz 3: Wpływ regularyzacji SVM ($C$)}
 Zbadano wpływ parametru $C \in \{0{,}1; 1; 10; 50\}$ dla części SVM (przy ustalonym $p_{svm}=100\%$). W eksperymencie ustalono liczbę estymatorów $T=20$.
@@ -286,23 +290,13 @@ Zbadano wpływ parametru $C \in \{0{,}1; 1; 10; 50\}$ dla części SVM (przy ust
     \label{fig:svm_C}
 \end{figure}
 
-\begin{table}[H]
-    \centering
-    \caption{Wpływ parametru $C$ na dokładność (zbiór Breast Cancer, $T=20$, $p_{svm}=100\%$)}
-    \begin{tabular}{ccc}
-        \toprule
-        \textbf{Parametr C} & \textbf{Średnia Dokładność} & \textbf{Odch. Std.} \\
-        \midrule
-        0,1 & 0,952 & 0,004 \\
-        1,0 & 0,957 & 0,004 \\
-        10,0 & 0,961 & 0,003 \\
-        50,0 & \textbf{0,962} & 0,004 \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-Wnioski:
-W tym eksperymencie najlepsze wyniki uzyskano dla większych wartości $C$ (dla Breast Cancer: \textbf{$C=50$}). Zbyt małe $C$ (silna regularyzacja) powoduje niedopasowanie, natomiast dalsze zwiększanie $C$ nie przynosi już istotnych korzyści i może zwiększać wariancję.
+\textbf{Wnioski:}
+\begin{itemize}
+    \item Na zbiorze Mushroom (rys.~\ref{fig:svm_C}a) obserwujemy wyraźny wpływ parametru $C$ -- dla $C=0{,}1$ dokładność wynosi 0,999, natomiast dla $C \geq 10$ osiągamy perfekcyjną klasyfikację (1,000). Zbiór ten jest liniowo separowalny, więc większe $C$ pozwala na dokładniejsze dopasowanie hiperpłaszczyzny.
+    \item Na zbiorze Breast Cancer (rys.~\ref{fig:svm_C}b) zwiększanie $C$ poprawia wyniki -- od 0,952 dla $C=0{,}1$ do 0,963 dla $C=50$. Wzrost jest stopniowy i stabilny, co sugeruje, że dane są dobrze separowalne liniowo, a słaba regularyzacja (wysokie $C$) nie prowadzi do przeuczenia.
+    \item Na zbiorach Wine Quality (rys.~\ref{fig:svm_C}c) oraz Car Evaluation (rys.~\ref{fig:svm_C}d) wpływ parametru $C$ jest minimalny -- dokładność zmienia się odpowiednio w zakresie 0,657--0,667 oraz 0,791--0,796. Wynika to z faktu, że liniowy SVM nie jest w stanie dobrze zamodelować nieliniowych zależności w tych zbiorach, niezależnie od wartości regularyzacji.
+    \item Ogólnie, zbyt małe $C$ (silna regularyzacja) powoduje niedopasowanie modelu, natomiast dla zbiorów nieliniowych zwiększanie $C$ nie przynosi istotnych korzyści.
+\end{itemize}
 
 \subsection{Analiza błędów - Macierze Pomyłek (Heatmapy)}
 Poniżej przedstawiono zagregowane macierze pomyłek (suma z 25 uruchomień) dla modelu hybrydowego ($T=50$, $p_{svm}=50\%$, $C=1{,}0$). Pozwala to ocenić, które klasy są mylone najczęściej.
