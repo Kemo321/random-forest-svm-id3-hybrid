@@ -327,13 +327,19 @@ Poniżej przedstawiono zagregowane macierze pomyłek (suma z 25 uruchomień) dla
         \caption{Car Evaluation}
     \end{subfigure}
     \caption{Zagregowane macierze pomyłek (heatmapy) dla $T=50$, $p_{svm}=50\%$, $C=1{,}0$.}
+    \label{fig:heatmaps}
 \end{figure}
 
-Wnioski:
-Na zbiorze \textit{Car Evaluation} najwięcej pomyłek występuje przy klasyfikacji klasy rzadkiej ("vgood") jako klasy częstej ("acc"). Jest to typowy efekt dla niezbalansowanych zbiorów danych. Hybrydyzacja z SVM nie rozwiązała tego problemu w stopniu zadowalającym, gdyż liniowy SVM ma tendencję do faworyzowania klas większościowych.
+\textbf{Wnioski:}
+\begin{itemize}
+    \item Na zbiorze Mushroom (rys.~\ref{fig:heatmaps}a) obserwujemy niemal perfekcyjną klasyfikację -- tylko 52 błędy na ponad 200~000 predykcji (zagregowanych z 25 uruchomień). Model popełnia sporadyczne błędy w obu kierunkach.
+    \item Na zbiorze Breast Cancer (rys.~\ref{fig:heatmaps}b) model popełnia więcej błędów typu FP (355 przypadków benign sklasyfikowanych jako malignant) niż FN (220 przypadków malignant sklasyfikowanych jako benign). W kontekście diagnostyki medycznej taki rozkład błędów jest akceptowalny -- lepiej fałszywie zaalarmować niż przeoczyć chorobę.
+    \item Na zbiorze Wine Quality (rys.~\ref{fig:heatmaps}c) widoczny jest silny wpływ niezbalansowania klas -- model ma tendencję do klasyfikowania próbek jako klasa większościowa (low quality). Aż 45~933 przypadków high quality zostało błędnie sklasyfikowanych jako low quality (FN), podczas gdy tylko 4~567 przypadków low quality jako high quality (FP).
+    \item Na zbiorze Car Evaluation (rys.~\ref{fig:heatmaps}d) najczęściej mylone są klasy ``unacc'' i ``good'' (4532 błędów) oraz ``vgood'' klasyfikowana jako ``unacc'' (1272 błędów). Klasy rzadkie (``acc'', ``vgood'') są bardzo słabo rozpoznawane -- tylko 17 z 1725 przypadków ``acc'' i 143 z 1625 przypadków ``vgood'' zostało poprawnie sklasyfikowanych. Potwierdza to, że hybrydyzacja z liniowym SVM nie rozwiązuje problemu niezbalansowanych zbiorów wieloklasowych.
+\end{itemize}
 
-\section{Analiza nadmiernego dopasowania (Overfitting)}
-W celu oceny zjawiska przeuczenia porównano dokładność na zbiorze treningowym i testowym.
+\subsection{Analiza nadmiernego dopasowania (Overfitting)}
+W celu oceny zjawiska przeuczenia porównano dokładność na zbiorze treningowym i testowym dla modelu hybrydowego ($T=20$, $p_{svm}=50\%$, $C=1{,}0$).
 
 \begin{figure}[H]
     \centering
@@ -360,11 +366,18 @@ W celu oceny zjawiska przeuczenia porównano dokładność na zbiorze treningowy
         \includegraphics[width=\textwidth]{plots/overfitting_car_evaluation.png}
         \caption{Car Evaluation}
     \end{subfigure}
-    \caption{Porównanie dokładności na zbiorze treningowym i testowym (Train vs Test) dla $T=50$, $p_{svm}=50\%$, $C=1{,}0$.}
+    \caption{Porównanie dokładności na zbiorze treningowym i testowym (Train vs Test) dla $T=20$, $p_{svm}=50\%$, $C=1{,}0$.}
     \label{fig:overfitting}
 \end{figure}
 
-Wniosek: Obserwujemy wyraźne nadmierne dopasowanie. Drzewa ID3 mają tendencję do budowania bardzo głębokich struktur (brak przycinania w implementacji). Zastosowanie lasu (Bagging) zmniejszyło ten efekt względem pojedynczego drzewa (gdzie różnica wynosiła ponad 20 p.p.), ale go nie wyeliminowało. Sugeruje to konieczność wprowadzenia ograniczenia głębokości drzewa (\texttt{max\_depth}) w przyszłych pracach.
+\textbf{Wnioski:}
+\begin{itemize}
+    \item Na zbiorze Mushroom (rys.~\ref{fig:overfitting}a) nie obserwujemy przeuczenia -- dokładność treningowa (0,9998) i testowa (0,9997) są niemal identyczne (różnica $\Delta = 0{,}008$ p.p.). Zbiór jest łatwy do klasyfikacji i model dobrze generalizuje.
+    \item Na zbiorze Breast Cancer (rys.~\ref{fig:overfitting}b) występuje umiarkowane przeuczenie -- dokładność treningowa wynosi 0,984, a testowa 0,960 (różnica $\Delta = 2{,}46$ p.p.). Jest to akceptowalny poziom, wskazujący na dobrą generalizację modelu.
+    \item Na zbiorze Wine Quality (rys.~\ref{fig:overfitting}c) paradoksalnie dokładność testowa (0,689) jest zbliżona do treningowej (0,697), z różnicą $\Delta = 0{,}81$ p.p. Niska dokładność w obu przypadkach wynika z trudności zadania (silne niezbalansowanie), a nie z przeuczenia.
+    \item Na zbiorze Car Evaluation (rys.~\ref{fig:overfitting}d) obserwujemy wyraźne przeuczenie -- dokładność treningowa wynosi 0,849, a testowa 0,811 (różnica $\Delta = 3{,}74$ p.p.). Drzewa ID3 mają tendencję do budowania głębokich struktur bez przycinania, co prowadzi do nadmiernego dopasowania do danych treningowych.
+    \item Ogólnie, zastosowanie techniki Bagging (losowanie próbek bootstrapowych) zmniejsza efekt przeuczenia w porównaniu do pojedynczego drzewa decyzyjnego. Dalszą poprawę można uzyskać przez wprowadzenie ograniczenia głębokości drzewa (\texttt{max\_depth}).
+\end{itemize}
 
 \section{Podsumowanie i wnioski końcowe}
 Zrealizowany projekt pozwolił na zbadanie właściwości hybrydowego lasu klasyfikacyjnego. Główne wnioski z badań są następujące:
