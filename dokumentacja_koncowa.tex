@@ -127,6 +127,25 @@ Każdy eksperyment przeprowadzono zgodnie z poniższymi zasadami, aby zapewnić 
 \section{Wyniki eksperymentów}
 
 \subsection{Weryfikacja}
+W celu weryfikacji poprawności implementacji porównano wyniki autorskiego drzewa ID3 oraz modelu hybrydowego z implementacjami referencyjnymi z biblioteki \texttt{scikit-learn}: \texttt{DecisionTreeClassifier} (SkTree) oraz \texttt{RandomForestClassifier} (SkRF).
+
+\begin{table}[H]
+    \centering
+    \caption{Porównanie dokładności implementacji autorskich z referencyjnymi}
+    \label{tab:verification}
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Zbiór danych} & \textbf{ID3} & \textbf{SkTree} & \textbf{Hybrid} & \textbf{SkRF} & \textbf{H-RF Diff} \\
+        \midrule
+        Mushroom & 1,0000 & 1,0000 & 0,9996 & 1,0000 & $-0,0004$ \\
+        Breast Cancer & 0,9240 & 0,9240 & 0,9532 & 0,9415 & $+0,0117$ \\
+        Wine Quality & 0,7554 & 0,7662 & 0,6810 & 0,8149 & $-0,1338$ \\
+        Car Evaluation & 0,9383 & 0,9750 & 0,7784 & 0,9692 & $-0,1908$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\textbf{Wnioski:} Autorska implementacja ID3 osiąga identyczne wyniki jak \texttt{DecisionTreeClassifier} na zbiorze Mushroom (1,0000) oraz Breast Cancer (0,9240), co potwierdza poprawność algorytmu. Model hybrydowy przewyższa las losowy na zbiorze Breast Cancer ($+1,17$ p.p.), natomiast na zbiorach z cechami kategorycznymi (Car Evaluation) oraz silnie niezbalansowanych (Wine Quality) ustępuje implementacji referencyjnej - co jest zgodne z oczekiwaniami dla liniowego SVM.
 
 \subsection{Scenariusz 1: Wpływ udziału SVM w lesie ($p_{svm}$)}
 Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten determinuje, jak duża część lasu składa się z klasyfikatorów SVM (reszta to ID3). W eksperymencie ustalono liczbę estymatorów $T=20$ oraz parametr regularyzacji SVM $C=1{,}0$.
