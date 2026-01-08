@@ -380,11 +380,30 @@ W celu oceny zjawiska przeuczenia porównano dokładność na zbiorze treningowy
 \end{itemize}
 
 \section{Podsumowanie i wnioski końcowe}
-Zrealizowany projekt pozwolił na zbadanie właściwości hybrydowego lasu klasyfikacyjnego. Główne wnioski z badań są następujące:
+Zrealizowany projekt pozwolił na zbadanie właściwości hybrydowego lasu klasyfikacyjnego łączącego drzewa ID3 z klasyfikatorami SVM. Główne wnioski z badań są następujące:
+
 \begin{enumerate}
-    \item \textbf{Skuteczność hybrydyzacji:} łączenie SVM i ID3 ma sens tylko na zbiorach, które posiadają cechy częściowo separowalne liniowo, a częściowo wymagające nieliniowych podziałów (jak \textit{Breast Cancer}). Na zbiorach typowo dyskretnych (\textit{Car Evaluation}) dodanie SVM pogarsza wyniki.
-    \item \textbf{Wrażliwość na dane:} autorska implementacja ID3 działa poprawnie i dorównuje rozwiązaniom bibliotecznym na danych dyskretnych.
-    \item \textbf{Czego się nauczyliśmy:} realizacja projektu pozwoliła nam zrozumieć praktyczne różnice między modelami generatywnymi (drzewa) a dyskryminacyjnymi (SVM). Zrozumieliśmy również, jak kluczowa dla algorytmów zespołowych jest różnorodność estymatorów bazowych - bez wprowadzenia losowania cech (\textit{Random Subspace}) nasz las hybrydowy nie osiągałby lepszych wyników niż pojedynczy klasyfikator.
+    \item \textbf{Skuteczność hybrydyzacji zależy od charakterystyki danych:}
+    \begin{itemize}
+        \item Na zbiorze Breast Cancer (cechy ciągłe, częściowo separowalne liniowo) hybrydyzacja przyniosła najlepsze rezultaty -- optimum dla $p_{svm}=50\%$ (dokładność 0,960) przewyższyło zarówno czyste ID3 (0,945), jak i czyste SVM (0,957).
+        \item Na zbiorach z cechami kategorycznymi (Car Evaluation) oraz silnie niezbalansowanych (Wine Quality) dodanie SVM pogarszało wyniki -- spadek dokładności odpowiednio z 0,829 do 0,796 oraz z 0,725 do 0,662 przy wzroście $p_{svm}$ od 0\% do 100\%.
+    \end{itemize}
+
+    \item \textbf{Poprawność implementacji:} Autorska implementacja ID3 osiąga identyczne wyniki jak \\ \texttt{DecisionTreeClassifier} ze \texttt{scikit-learn} na zbiorach Mushroom (1,000) i Breast Cancer (0,924), co potwierdza poprawność algorytmu.
+
+    \item \textbf{Wpływ hiperparametrów:}
+    \begin{itemize}
+        \item Liczba estymatorów $T$: stabilizacja wyników następuje przy $T \approx 50$, dalsze zwiększanie redukuje wariancję, ale nie poprawia dokładności.
+        \item Parametr regularyzacji $C$: istotny tylko dla zbiorów liniowo separowalnych (Mushroom, Breast Cancer); dla zbiorów nieliniowych (Wine, Car) wpływ minimalny.
+    \end{itemize}
+
+    \item \textbf{Ograniczenia podejścia:}
+    \begin{itemize}
+        \item Liniowy SVM nie radzi sobie z silnie niezbalansowanymi zbiorami wieloklasowymi -- na zbiorze Car Evaluation klasy rzadkie (acc, vgood) były niemal całkowicie ignorowane.
+        \item Drzewa ID3 bez przycinania wykazują tendencję do przeuczenia (różnica train-test do 3,74 p.p. na zbiorze Car Evaluation).
+    \end{itemize}
+
+    \item \textbf{Czego się nauczyliśmy:} Realizacja projektu pozwoliła zrozumieć praktyczne różnice między modelami generatywnymi (drzewa) a dyskryminacyjnymi (SVM). Kluczowa dla algorytmów zespołowych okazała się różnorodność estymatorów bazowych -- wprowadzenie Random Subspace Method ($m = \sqrt{M}$ cech) było niezbędne dla uzyskania korzyści z hybrydyzacji.
 \end{enumerate}
 
 \end{document}
