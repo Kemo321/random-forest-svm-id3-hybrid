@@ -1,8 +1,7 @@
 import pandas as pd
-import numpy as np
 from typing import Any, Callable, Dict, List, Tuple, Union
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from core.models.ID3Classifier import ID3Classifier
@@ -65,22 +64,6 @@ class VerificationRunner:
                 rf_sk = RandomForestClassifier(n_estimators=50, random_state=self.random_state)
                 rf_sk.fit(X_id3_tr, y_train)
                 acc_rf = accuracy_score(y_test, rf_sk.predict(X_id3_te))
-
-                cm_id3 = confusion_matrix(y_test, id3.predict(X_id3_te))
-                cm_hybrid = confusion_matrix(y_test, hybrid.predict((X_id3_te, X_svm_te)))
-                cm_rf = confusion_matrix(y_test, rf_sk.predict(X_id3_te))
-
-                print(f"\n  Confusion Matrices for {ds_name}:")
-                print(f"  ID3:\n{cm_id3}")
-                print(f"  Hybrid:\n{cm_hybrid}")
-                print(f"  sklearn RF:\n{cm_rf}")
-
-                cm_dir = os.path.join(self.results_dir, 'confusion_matrices')
-                os.makedirs(cm_dir, exist_ok=True)
-                ds_name_clean = ds_name.replace(' ', '_').replace('-', '_')
-                np.savetxt(os.path.join(cm_dir, f"cm_id3_{ds_name_clean}.csv"), cm_id3, delimiter=',', fmt='%d')
-                np.savetxt(os.path.join(cm_dir, f"cm_hybrid_{ds_name_clean}.csv"), cm_hybrid, delimiter=',', fmt='%d')
-                np.savetxt(os.path.join(cm_dir, f"cm_rf_{ds_name_clean}.csv"), cm_rf, delimiter=',', fmt='%d')
 
                 results.append({
                     "Dataset": ds_name,
