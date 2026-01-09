@@ -37,7 +37,7 @@
 
 \section{Algorytmy i struktura rozwiązania}
 
-W projekcie zaimplementowano hybrydowy zespół klasyfikatorów (\textit{Ensemble Learning}), łączący autorską implementację drzewa decyzyjnego ID3 z bibliotecznym klasyfikatorem SVM.
+W projekcie zaimplementowano hybrydowy zespół klasyfikatorów, łączący autorską implementację drzewa decyzyjnego ID3 z bibliotecznym klasyfikatorem SVM.
 
 \subsection{Autorskie drzewo ID3}
 Zaimplementowany algorytm ID3 buduje drzewo decyzyjne metodą zachłanną, wykorzystując Zysk Informacyjny (\textit{Information Gain}) jako kryterium podziału zbioru w każdym węźle.
@@ -48,17 +48,17 @@ H(S) = - \sum_{i=1}^{k} p_i \log_2(p_i), \quad IG(S, A) = H(S) - \sum_{v \in Val
 \]
 gdzie $p_i$ to prawdopodobieństwo wystąpienia $i$-tej klasy, a $S_v$ to podzbiór przykładów, dla których atrybut $A$ przyjmuje wartość $v$.
 
-Procedura budowy drzewa jest rekurencyjna: w każdym kroku wybierany jest atrybut maksymalizujący $IG$, a zbiór dzielony jest na podzbiory, aż do uzyskania jednorodności klas w liściach lub wyczerpania atrybutów.
+Procedura budowy drzewa jest rekurencyjna: w każdym kroku wybierany jest atrybut z największym zyskiem informacyjnym, a zbiór dzielony jest na podzbiory, aż do uzyskania takich samych klas w liściach lub wyczerpania atrybutów.
 
 \subsection{Support Vector Machine (SVM)}
 Jako drugi klasyfikator bazowy wykorzystano implementację liniowego SVM z biblioteki \texttt{scikit-learn}. Model poszukuje hiperpłaszczyzny maksymalizującej margines między klasami, realizując funkcję decyzyjną $f(x) = \operatorname{sign}(w^T x + b)$.
-Proces uczenia polega na minimalizacji funkcji kosztu:
+Proces uczenia polega na minimalizacji funkcji:
 \[
 \frac{1}{2}||w||^{2}+C\sum_{i}\xi_{i},
 \]
-gdzie parametr $C$ reguluje kompromis między szerokością marginesu a błędami klasyfikacji. Dla problemów wieloklasowych zastosowano strategię \textit{One-vs-Rest}.
+gdzie parametr $C$ reguluje kompromis między marginesem a błędami klasyfikacji. Dla problemów wieloklasowych zastosowano strategię \textit{One-vs-Rest}.
 
-\subsection{Algorytm Lasu Hybrydowego}
+\subsection{Algorytm Lasu}
 Algorytm zespołu wprowadza losowość na dwóch poziomach: danych (Bagging) oraz cech (Random Subspace Method). Procedura uczenia dla $T$ estymatorów przebiega następująco:
 \begin{enumerate}
     \item Dla każdego estymatora $i=1 \dots T$:
@@ -71,7 +71,7 @@ Algorytm zespołu wprowadza losowość na dwóch poziomach: danych (Bagging) ora
 \end{enumerate}
 
 \subsection{Odstępstwa i doprecyzowanie implementacji}
-W stosunku do pierwotnych założeń wprowadzono istotne doprecyzowania wynikające z fazy implementacji:
+W stosunku do pierwotnych założeń wprowadzono następujące doprecyzowania:
 \begin{itemize}
     \item \textbf{Random Subspace Method:} Aby zapewnić różnorodność klasyfikatorów, wprowadzono losowanie podzbioru cech dla każdego estymatora. Wartość $m$ (liczba cech używanych przez pojedynczy klasyfikator) domyślnie ustawiono na $\sqrt{M}$ (gdzie $M$ to liczba cech), z dynamicznym dostosowaniem dla zbiorów o bardzo małej liczbie atrybutów.
     \item \textbf{Obsługa danych heterogenicznych:} Las obsługuje jednocześnie dwie reprezentacje danych: dyskretną (dla ID3) oraz ciągłą/zakodowaną One-Hot (dla SVM), przekazując do konkretnego estymatora odpowiedni format danych wejściowych.
@@ -81,7 +81,7 @@ W stosunku do pierwotnych założeń wprowadzono istotne doprecyzowania wynikaj�
 Aby upewnić się, że implementacja nie zawiera błędów, przeprowadzono:
 \begin{enumerate}
     \item \textbf{Testy jednostkowe:} sprawdzono poprawność obliczania entropii (porównanie z wynikiem ręcznym dla prostego zbioru), poprawność podziałów w drzewie oraz mechanizm głosowania.
-    \item \textbf{Porównanie z metodą referencyjną:} wyniki autorskiego drzewa ID3 porównano z \\ \texttt{DecisionTreeClassifier} (kryterium entropii) na zbiorze \textit{Mushroom}. Uzyskano zgodność wyników (dokładność $\approx 100\%$), co potwierdza poprawność logiki budowy drzewa.
+    \item \textbf{Porównanie z metodą referencyjną:} wyniki autorskiego drzewa ID3 porównano z \\ \texttt{DecisionTreeClassifier} na zbiorze \textit{Mushroom}. Uzyskano zgodność wyników (dokładność $\approx 100\%$), co potwierdza poprawność logiki budowy drzewa.
 \end{enumerate}
 
 \section{Metodyka badań}
@@ -117,8 +117,8 @@ Szczegółowy rozkład klas w zbiorach:
 Każdy eksperyment przeprowadzono zgodnie z poniższymi zasadami, aby zapewnić rzetelność i powtarzalność wyników:
 \begin{itemize}
     \item \textbf{Weryfikacja poprawności:} Przed przystąpieniem do głównych eksperymentów wykonano testy jednostkowe oraz porównano wyniki autorskiej implementacji z metodami referencyjnymi (biblioteka \texttt{scikit-learn}).
-    \item \textbf{Wielokrotne uruchomienia:} Każdy punkt pomiarowy stanowi średnią z 25 niezależnych uruchomień algorytmu. W każdej iteracji stosowano inne ziarno losowości (\texttt{random\_state}) wpływające na podział zbioru, bootstrap oraz dobór cech.
-    \item \textbf{Podział danych:} Zastosowano 5-krotną walidację krzyżową (5-fold Stratified CV), co w połączeniu z 25 powtórzeniami daje łącznie 125 prób trenowania dla każdej konfiguracji parametrów.
+    \item \textbf{Wielokrotne uruchomienia:} Każdy pomiar stanowi średnią z 25 niezależnych uruchomień algorytmu. W każdej iteracji stosowano inne ziarno losowości (\texttt{random\_state}).
+    \item \textbf{Podział danych:} Zastosowano 5-krotną walidację krzyżową, co w połączeniu z 25 powtórzeniami daje łącznie 125 prób trenowania dla każdej konfiguracji parametrów.
     \item \textbf{Miary jakości:} Raportowana jest średnia dokładność (Accuracy), odchylenie standardowe, wynik minimalny i maksymalny oraz zagregowane macierze pomyłek (sumowane ze wszystkich uruchomień).
 \end{itemize}
 
@@ -143,10 +143,10 @@ W celu weryfikacji poprawności implementacji porównano wyniki autorskiego drze
     \end{tabular}
 \end{table}
 
-\textbf{Wnioski:} Autorska implementacja ID3 osiąga identyczne wyniki jak \texttt{DecisionTreeClassifier} na zbiorze Mushroom (1,0000) oraz Breast Cancer (0,9240), co potwierdza poprawność algorytmu. Model hybrydowy przewyższa las losowy na zbiorze Breast Cancer ($+1,17$ p.p.), natomiast na zbiorach z cechami kategorycznymi (Car Evaluation) oraz wieloklasowych ustępuje implementacji referencyjnej - co jest zgodne z oczekiwaniami dla liniowego SVM. Na zbiorze Wine Quality model hybrydowy (0,725) ustępuje referencyjnemu lasowi losowemu (0,781) o 5,6 p.p.
+\textbf{Wnioski:} Autorska implementacja ID3 osiąga identyczne wyniki jak \texttt{DecisionTreeClassifier} na zbiorze Mushroom (1,0000) oraz Breast Cancer (0,9240), co potwierdza poprawność algorytmu. Model hybrydowy przewyższa las losowy na zbiorze Breast Cancer ($+1,17$ p.p.), natomiast na zbiorach z cechami kategorycznymi (Car Evaluation) oraz wieloklasowych radzi sobie gorzej niż metoda referencyjna - co jest zgodne z oczekiwaniami dla liniowego SVM. Na zbiorze Wine Quality model hybrydowy (0,725) ustępuje referencyjnemu lasowi losowemu (0,781) o 5,6 p.p.
 
 \subsection{Scenariusz 1: Wpływ udziału SVM w lesie ($p_{svm}$)}
-Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten determinuje, jak duża część lasu składa się z klasyfikatorów SVM (reszta to ID3). W eksperymencie ustalono liczbę estymatorów $T=20$ oraz parametr regularyzacji SVM $C=1{,}0$.
+Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten określa, jak duża część lasu składa się z klasyfikatorów SVM (reszta to ID3). W eksperymencie ustalono liczbę estymatorów $T=20$ oraz parametr regularyzacji SVM $C=1{,}0$.
 
 \begin{figure}[H]
     \centering
@@ -211,10 +211,10 @@ Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten de
 
 \textbf{Wnioski:}
 \begin{itemize}
-    \item Na zbiorze Mushroom (rys.~\ref{fig:psvm}a) obserwujemy odwrotny trend niż na pozostałych zbiorach - zwiększanie udziału SVM poprawia wyniki. Dla czystego ID3 ($p_{svm}=0\%$) dokładność wynosi jedynie 0,970, podczas gdy dla czystego SVM ($p_{svm}=100\%$) osiągamy 0,9999. Zbiór ten jest liniowo separowalny, co stanowi idealne środowisko dla SVM.
-    \item Na zbiorze Breast Cancer (tab.~3, rys.~\ref{fig:psvm}b) hybrydyzacja przyniosła najlepsze rezultaty. Optimum osiągnięto dla $p_{svm}=50\%$ (dokładność 0,960), co jest wynikiem wyższym niż dla czystego ID3 (0,945) oraz czystego SVM (0,957). Wskazuje to, że ensemble korzysta z różnorodności błędów popełnianych przez drzewa (nieliniowe granice decyzyjne) i SVM (liniowe granice).
-    \item Na zbiorze Wine Quality (tab.~4, rys.~\ref{fig:psvm}c) obserwujemy tendencję spadkową - najlepsze wyniki uzyskano dla czystego ID3 ($p_{svm}=0\%$, dokładność 0,744), a zwiększanie udziału SVM stopniowo pogarszało jakość klasyfikacji (spadek do 0,708 dla $p_{svm}=100\%$). Liniowy SVM ma trudności z separacją klas w przestrzeni cech ciągłych po dyskretyzacji.
-    \item Na zbiorze Car Evaluation (rys.~\ref{fig:psvm}d) odnotowano podobny trend jak dla Wine Quality - spadek jakości wraz ze wzrostem udziału SVM (z 0,829 dla ID3 do 0,796 dla SVM). Relacje w tym zbiorze są silnie nieliniowe i kategoryczne, co jest naturalnym środowiskiem dla drzew decyzyjnych.
+    \item Na zbiorze Mushroom (rys.~\ref{fig:psvm}a) obserwujemy odwrotny trend niż na pozostałych zbiorach - zwiększanie udziału SVM poprawia wyniki. Dla czystego ID3 ($p_{svm}=0\%$) dokładność wynosi ok. 0,97, podczas gdy dla czystego SVM ($p_{svm}=100\%$) osiągamy wartość zbieżną do 1,00. Zbiór ten jest liniowo separowalny, co stanowi idealne środowisko dla SVM.
+    \item Na zbiorze Breast Cancer (tab.~3, rys.~\ref{fig:psvm}b) hybrydyzacja przyniosła najlepsze rezultaty. Optimum uzyskano dla $p_{svm}=50\%$ (dokładność 0,960), co jest wynikiem wyższym niż dla czystego ID3 (0,945) oraz czystego SVM (0,957). Sugeruje to, że model hybrydowy skutecznie wykorzystuje różniące się własności zastosowanych klasyfikatorów: drzewo umożliwia modelowanie nieliniowych granic decyzyjnych, a SVM zapewnia liniową separację w przestrzeni cech.
+    \item Na zbiorze Wine Quality (tab.~4, rys.~\ref{fig:psvm}c) obserwujemy tendencję spadkową - najlepsze wyniki uzyskano dla czystego ID3 ($p_{svm}=0\%$, dokładność 0,744), a zwiększanie udziału SVM stopniowo pogarszało jakość klasyfikacji (spadek do 0,708 dla $p_{svm}=100\%$). Sugeruje to, że relacje w tym zbiorze są nieliniowe i lepiej modelowane przez drzewa decyzyjne niż przez liniowy SVM.
+    \item Na zbiorze Car Evaluation (rys.~\ref{fig:psvm}d) odnotowano podobny trend jak dla Wine Quality - spadek jakości wraz ze wzrostem udziału SVM (z 0,829 dla ID3 do 0,796 dla SVM). Relacje w tym zbiorze są silnie nieliniowe i kategoryczne, co faworyzuje drzewa decyzyjne.
 \end{itemize}
 
 \subsection{Scenariusz 2: Wpływ liczby estymatorów ($T$)}
@@ -252,7 +252,7 @@ Zbadano wpływ rozmiaru lasu $T \in \{10, 20, 50, 100\}$ na stabilność i jako�
 \textbf{Wnioski:}
 \begin{itemize}
     \item Na zbiorze Mushroom (rys.~\ref{fig:estimator_count}a) obserwujemy szybką zbieżność do optimum - już dla $T=10$ osiągamy dokładność 0,997, a dla $T=20$ wynosi ona 0,9997. Dalsze zwiększanie liczby estymatorów nie przynosi istotnej poprawy (0,9999 dla $T=50$ i $T=100$).
-    \item Na zbiorze Breast Cancer (rys.~\ref{fig:estimator_count}b) zwiększanie $T$ powoduje stopniowy wzrost dokładności (z 0,958 dla $T=10$ do 0,961 dla $T=100$) oraz zmniejszenie odchylenia standardowego (z 0,007 do 0,003), co potwierdza teorię redukcji wariancji w ensemble learning.
+    \item Na zbiorze Breast Cancer (rys.~\ref{fig:estimator_count}b) zwiększanie $T$ powoduje stopniowy wzrost dokładności (z 0,958 dla $T=10$ do 0,961 dla $T=100$) oraz zmniejszenie odchylenia standardowego (z 0,007 do 0,003), co świadczy o większej stabilności modelu.
     \item Na zbiorze Wine Quality (rys.~\ref{fig:estimator_count}c) zwiększanie liczby estymatorów poprawia dokładność (z 0,717 dla $T=10$ do 0,744 dla $T=100$) oraz zmniejsza wariancję (odchylenie standardowe spada z 0,015 do 0,008). Na zbiorze Car Evaluation (rys.~\ref{fig:estimator_count}d) dokładność stabilizuje się na poziomie 0,812, a odchylenie standardowe spada z 0,017 do 0,010.
     \item Stabilizacja wyników następuje w okolicy $T=50$. Dalsze zwiększanie liczby estymatorów nie poprawia istotnie wyniku, a liniowo wydłuża czas obliczeń.
 \end{itemize}
@@ -331,10 +331,10 @@ Poniżej przedstawiono zagregowane macierze pomyłek (suma z 25 uruchomień) dla
 
 \textbf{Wnioski:}
 \begin{itemize}
-    \item Na zbiorze Mushroom (rys.~\ref{fig:heatmaps}a) obserwujemy niemal perfekcyjną klasyfikację - tylko 52 błędy na ponad 200~000 predykcji (zagregowanych z 25 uruchomień). Co ciekawe, błędy są jednostronne (tylko False Negative), co oznacza, że model sporadycznie klasyfikuje grzyby trujące jako jadalne, ale nigdy odwrotnie (w badanej próbce).
+    \item Na zbiorze Mushroom (rys.~\ref{fig:heatmaps}a) obserwujemy niemal perfekcyjną klasyfikację - tylko 52 błędy na ponad 200~000 predykcji (zagregowanych z 25 uruchomień). Błędy są jednostronne tylko False Negative, co oznacza, że model sporadycznie klasyfikuje grzyby trujące jako jadalne, ale nigdy odwrotnie. Wynika to najprawdopodobniej z samej charakterystyki zbioru.
     \item Na zbiorze Breast Cancer (rys.~\ref{fig:heatmaps}b) model popełnia więcej błędów typu FP (355 przypadków benign sklasyfikowanych jako malignant) niż FN (220 przypadków malignant sklasyfikowanych jako benign). W kontekście diagnostyki medycznej taki rozkład błędów jest akceptowalny - lepiej fałszywie zaalarmować niż przeoczyć chorobę.
-    \item Na zbiorze Wine Quality (rys.~\ref{fig:heatmaps}c) rozkład błędów jest bardziej zrównoważony. Model popełnia 6~136 błędów typu FP (low quality sklasyfikowane jako high quality) oraz 4~729 błędów typu FN (high quality sklasyfikowane jako low quality). Większa liczba FP wynika z tendencji modelu do klasyfikowania granicznych przypadków jako wyższą jakość.
-    \item Na zbiorze Car Evaluation (rys.~\ref{fig:heatmaps}d) najczęściej mylone są klasy ``unacc'' i ``good'' (4532 błędów) oraz ``vgood'' klasyfikowana jako ``unacc'' (1272 błędów). Klasy rzadkie (``acc'', ``vgood'') są bardzo słabo rozpoznawane - tylko 17 z 1725 przypadków ``acc'' i 143 z 1625 przypadków ``vgood'' zostało poprawnie sklasyfikowanych. Potwierdza to, że hybrydyzacja z liniowym SVM nie rozwiązuje problemu niezbalansowanych zbiorów wieloklasowych.
+    \item Na zbiorze Wine Quality (rys.~\ref{fig:heatmaps}c) rozkład błędów jest bardziej zrównoważony. Model popełnia 6~136 błędów typu FP (low quality sklasyfikowane jako high quality) oraz 4~729 błędów typu FN (high quality sklasyfikowane jako low quality). Większa liczba FP może wynikać z tendencji modelu do klasyfikowania granicznych przypadków jako wyższą jakość.
+    \item Na zbiorze Car Evaluation (rys.~\ref{fig:heatmaps}d) najczęściej mylone są klasy ``unacc'' i ``good'' (4532 błędów) oraz ``vgood'' klasyfikowana jako ``unacc'' (1272 błędów). Klasy rzadkie (``acc'', ``vgood'') są bardzo słabo rozpoznawane - tylko 17 z 1725 przypadków ``acc'' i 143 z 1625 przypadków ``vgood'' zostało poprawnie sklasyfikowanych. Potwierdza to, że hybrydyzacja z liniowym SVM, bez wsparcia znacznym preprocessingiem danych, nie radzi sobie z niezbalansowanymi, wieloklasowymi zbiorami.
 \end{itemize}
 
 \subsection{Analiza nadmiernego dopasowania (Overfitting)}
@@ -373,37 +373,21 @@ W celu oceny zjawiska przeuczenia porównano dokładność na zbiorze treningowy
 \begin{itemize}
     \item Na zbiorze Mushroom (rys.~\ref{fig:overfitting}a) nie obserwujemy przeuczenia - dokładność treningowa (0,9998) i testowa (0,9997) są niemal identyczne (różnica $\Delta = 0{,}008$ p.p.). Zbiór jest łatwy do klasyfikacji i model dobrze generalizuje.
     \item Na zbiorze Breast Cancer (rys.~\ref{fig:overfitting}b) występuje umiarkowane przeuczenie - dokładność treningowa wynosi 0,984, a testowa 0,960 (różnica $\Delta = 2{,}46$ p.p.). Jest to akceptowalny poziom, wskazujący na dobrą generalizację modelu.
-    \item Na zbiorze Wine Quality (rys.~\ref{fig:overfitting}c) występuje umiarkowane przeuczenie - dokładność treningowa wynosi 0,766, a testowa 0,728 (różnica $\Delta = 3{,}76$ p.p.). Wynik jest porównywalny z innymi zbiorami i wskazuje na typowe zachowanie modelu ensemble.
-    \item Na zbiorze Car Evaluation (rys.~\ref{fig:overfitting}d) obserwujemy wyraźne przeuczenie - dokładność treningowa wynosi 0,849, a testowa 0,811 (różnica $\Delta = 3{,}74$ p.p.). Drzewa ID3 mają tendencję do budowania głębokich struktur bez przycinania, co prowadzi do nadmiernego dopasowania do danych treningowych.
-    \item Ogólnie, zastosowanie techniki Bagging (losowanie próbek bootstrapowych) zmniejsza efekt przeuczenia w porównaniu do pojedynczego drzewa decyzyjnego. Dalszą poprawę można uzyskać przez wprowadzenie ograniczenia głębokości drzewa (\texttt{max\_depth}).
+    \item Na zbiorze Wine Quality (rys.~\ref{fig:overfitting}c) występuje umiarkowane przeuczenie - dokładność treningowa wynosi 0,766, a testowa 0,728 (różnica $\Delta = 3{,}76$ p.p.). Wynik jest porównywalny z innymi zbiorami i wskazuje na typowe zachowanie modelu.
+    \item Na zbiorze Car Evaluation (rys.~\ref{fig:overfitting}d) obserwujemy również umiarkowane przeuczenie- dokładność treningowa wynosi 0,849, a testowa 0,811 (różnica $\Delta = 3{,}74$ p.p.).
+    \item Na testowanych zbiorach model hybrydowy wykazuje umiarkowane przeuczenie. Różnice między dokładnością treningową a testową mieszczą się w zakresie 2,5-3,8 p.p., co jest akceptowalne i wskazuje na dobrą zdolność generalizacji.
 \end{itemize}
 
 \section{Podsumowanie i wnioski końcowe}
 Zrealizowany projekt pozwolił na zbadanie właściwości hybrydowego lasu klasyfikacyjnego łączącego drzewa ID3 z klasyfikatorami SVM. Główne wnioski z badań są następujące:
 
 \begin{enumerate}
-    \item \textbf{Skuteczność hybrydyzacji zależy od charakterystyki danych:}
+    \item \textbf{Czego się nauczyliśmy:}
     \begin{itemize}
-        \item Na zbiorze Mushroom (cechy kategoryczne, liniowo separowalny) najlepsze wyniki uzyskano dla czystego SVM ($p_{svm}=100\%$, dokładność 0,9999), podczas gdy czyste ID3 osiągało jedynie 0,970.
-        \item Na zbiorze Breast Cancer (cechy ciągłe, częściowo separowalne liniowo) hybrydyzacja przyniosła najlepsze rezultaty - optimum dla $p_{svm}=50\%$ (dokładność 0,960) przewyższyło zarówno czyste ID3 (0,945), jak i czyste SVM (0,957).
-        \item Na zbiorach z cechami kategorycznymi i nieliniowymi zależnościami (Car Evaluation) oraz Wine Quality dodanie SVM pogarszało wyniki - spadek dokładności odpowiednio z 0,829 do 0,796 oraz z 0,744 do 0,708 przy wzroście $p_{svm}$ od 0\% do 100\%.
+        \item Jak dobór klasyfikatora bazowego zależy od charakteru danych: SVM (liniowy) preferuje zbiory (w przybliżeniu) liniowo separowalne, natomiast ID3 lepiej radzi sobie z nieliniowymi zależnościami oraz danymi kategorycznymi.
+        \item Jak istotna jest różnorodność estymatorów w zespole: zastosowanie \textit{Random Subspace Method} (domyślnie $m=\sqrt{M}$) okazało się kluczowe, aby modele w lesie podejmowały odmienne decyzje i żeby głosowanie miało sens.
+        \item Jak interpretować wyniki eksperymentów: analiza wariancji (odchylenia standardowego) oraz macierzy pomyłek pozwala lepiej ocenić zachowanie, efektywność modelu niż sama dokładność.
     \end{itemize}
-
-    \item \textbf{Poprawność implementacji:} Autorska implementacja ID3 osiąga identyczne wyniki jak \\ \texttt{DecisionTreeClassifier} ze \texttt{scikit-learn} na zbiorach Mushroom (1,000) i Breast Cancer (0,924), co potwierdza poprawność algorytmu.
-
-    \item \textbf{Wpływ hiperparametrów:}
-    \begin{itemize}
-        \item Liczba estymatorów $T$: stabilizacja wyników następuje przy $T \approx 50$, dalsze zwiększanie redukuje wariancję, ale nie poprawia dokładności.
-        \item Parametr regularyzacji $C$: istotny tylko dla zbiorów liniowo separowalnych (Mushroom, Breast Cancer); dla zbiorów nieliniowych (Wine, Car) wpływ minimalny.
-    \end{itemize}
-
-    \item \textbf{Ograniczenia podejścia:}
-    \begin{itemize}
-        \item Liniowy SVM nie radzi sobie z silnie niezbalansowanymi zbiorami wieloklasowymi - na zbiorze Car Evaluation klasy rzadkie (acc, vgood) były niemal całkowicie ignorowane.
-        \item Drzewa ID3 bez przycinania wykazują tendencję do przeuczenia (różnica train-test do 3,76 p.p. na zbiorach Wine Quality i Car Evaluation).
-    \end{itemize}
-
-    \item \textbf{Czego się nauczyliśmy:} Realizacja projektu pozwoliła zrozumieć praktyczne różnice między modelami generatywnymi (drzewa) a dyskryminacyjnymi (SVM). Kluczowa dla algorytmów zespołowych okazała się różnorodność estymatorów bazowych - wprowadzenie Random Subspace Method ($m = \sqrt{M}$ cech) było niezbędne dla uzyskania korzyści z hybrydyzacji.
 \end{enumerate}
 
 \end{document}
