@@ -1,13 +1,4 @@
-"""
-Plot Generator - creates visualizations from CSV results.
-
-This module handles:
-- Scenario 1 plots: Accuracy vs p_svm for each dataset
-- Scenario 2 plots: Accuracy vs T (estimator count) for each dataset
-- Scenario 3 plots: Accuracy vs C for each dataset
-- Heatmaps: Confusion matrices for all datasets
-- Overfitting: Train vs Test comparison tables/plots
-"""
+# Authors: Jan Szwagierczak
 
 import os
 from typing import Dict, List, Optional
@@ -19,21 +10,16 @@ import seaborn as sns
 
 
 class PlotGenerator:
-    """Generates plots from experimental CSV results."""
-
     def __init__(self, output_dir: str = "./plots", results_dir: str = "./results") -> None:
         self.output_dir = output_dir
         self.results_dir = results_dir
         os.makedirs(self.output_dir, exist_ok=True)
 
-        # Set style for all plots
         plt.style.use('seaborn-v0_8-whitegrid')
 
-        # Formatter for decimal separator (period -> comma)
         self.decimal_formatter = ticker.FuncFormatter(lambda x, p: f'{x:.2f}'.replace('.', ','))
 
     def _save_figure(self, fig: plt.Figure, filename: str, dpi: int = 150) -> str:
-        """Save figure and return the path."""
         filepath = os.path.join(self.output_dir, filename)
         fig.savefig(filepath, dpi=dpi, bbox_inches='tight')
         plt.close(fig)
@@ -41,10 +27,6 @@ class PlotGenerator:
         return filepath
 
     def plot_scenario1_p_svm(self, csv_path: Optional[str] = None) -> List[str]:
-        """
-        Generate plots for Scenario 1: Impact of p_svm.
-        Creates one plot per dataset showing accuracy vs p_svm.
-        """
         print("\nGenerating Scenario 1 plots (p_svm impact)...")
 
         if csv_path is None:
@@ -76,7 +58,6 @@ class PlotGenerator:
                 label='Mean Accuracy ± Std'
             )
 
-            # Add min/max as shaded area
             ax.fill_between(
                 subset["p_svm"],
                 subset["min_acc"],
@@ -101,10 +82,6 @@ class PlotGenerator:
         return saved_files
 
     def plot_scenario2_estimator_count(self, csv_path: Optional[str] = None) -> List[str]:
-        """
-        Generate plots for Scenario 2: Impact of T (estimator count).
-        Creates one plot per dataset showing accuracy vs T.
-        """
         print("\nGenerating Scenario 2 plots (T impact)...")
 
         if csv_path is None:
@@ -160,10 +137,6 @@ class PlotGenerator:
         return saved_files
 
     def plot_scenario3_C(self, csv_path: Optional[str] = None) -> List[str]:
-        """
-        Generate plots for Scenario 3: Impact of C (SVM regularization).
-        Creates one plot per dataset showing accuracy vs C.
-        """
         print("\nGenerating Scenario 3 plots (C impact)...")
 
         if csv_path is None:
@@ -222,13 +195,6 @@ class PlotGenerator:
         self,
         class_labels: Optional[Dict[str, List[str]]] = None
     ) -> List[str]:
-        """
-        Generate heatmaps for confusion matrices.
-        Creates one heatmap per dataset from saved CSV files.
-
-        Args:
-            class_labels: Optional dict mapping dataset name to list of class labels
-        """
         print("\nGenerating confusion matrix heatmaps...")
 
         cm_dir = os.path.join(self.results_dir, "confusion_matrices")
@@ -238,7 +204,6 @@ class PlotGenerator:
 
         saved_files = []
 
-        # Find all hybrid confusion matrix files
         cm_files = [f for f in os.listdir(cm_dir) if f.startswith("cm_hybrid_") and f.endswith(".csv")]
 
         for cm_file in cm_files:
@@ -250,7 +215,6 @@ class PlotGenerator:
 
             fig, ax = plt.subplots(figsize=(8, 6))
 
-            # Get class labels if provided
             labels = None
             if class_labels and ds_name in class_labels:
                 labels = class_labels[ds_name]
@@ -279,9 +243,6 @@ class PlotGenerator:
         self,
         class_labels: Optional[Dict[str, List[str]]] = None
     ) -> str:
-        """
-        Generate 2x2 grid of confusion matrix heatmaps for all datasets.
-        """
         print("\nGenerating confusion matrices grid (2x2)...")
 
         cm_dir = os.path.join(self.results_dir, "confusion_matrices")
@@ -289,7 +250,6 @@ class PlotGenerator:
             print(f"  Warning: {cm_dir} not found")
             return ""
 
-        # Find all hybrid confusion matrix files
         cm_files = sorted([f for f in os.listdir(cm_dir) if f.startswith("cm_hybrid_") and f.endswith(".csv")])
 
         if len(cm_files) < 4:
@@ -334,10 +294,6 @@ class PlotGenerator:
         return self._save_figure(fig, filename)
 
     def plot_overfitting_analysis(self, csv_path: Optional[str] = None) -> List[str]:
-        """
-        Generate overfitting analysis visualization.
-        Creates bar plot comparing Train vs Test accuracy for each dataset.
-        """
         print("\nGenerating overfitting analysis plot...")
 
         if csv_path is None:
@@ -350,7 +306,6 @@ class PlotGenerator:
         df = pd.read_csv(csv_path)
         saved_files = []
 
-        # Bar plot comparing train vs test
         fig, ax = plt.subplots(figsize=(12, 6))
 
         x = np.arange(len(df))
@@ -373,16 +328,14 @@ class PlotGenerator:
         ax.legend()
         ax.grid(True, axis='y', linestyle=':', alpha=0.6)
 
-        # Add delta values as text
         for i, (train, test, delta) in enumerate(zip(df["train_acc_mean"], df["test_acc_mean"], df["delta"])):
             max_y = max(train, test)
             ax.annotate(f'Δ={delta:.3f}'.replace('.', ','), xy=(i, max_y + 0.02),
-                       ha='center', fontsize=9, color='gray')
+                        ha='center', fontsize=9, color='gray')
 
         plt.tight_layout()
         saved_files.append(self._save_figure(fig, "overfitting_train_vs_test.png"))
 
-        # Also create individual plots per dataset
         for _, row in df.iterrows():
             ds_name = row["dataset"]
 
@@ -394,20 +347,19 @@ class PlotGenerator:
             colors = ['#2196F3', '#FF5722']
 
             bars = ax.bar(categories, means, yerr=stds, capsize=10,
-                         color=colors, alpha=0.8, edgecolor='black')
+                          color=colors, alpha=0.8, edgecolor='black')
 
             ax.set_ylabel("Accuracy", fontsize=12)
             ax.set_title(f"Train vs Test Accuracy - {ds_name}\n(Δ = {row['delta']:.4f})".replace('.', ','),
-                        fontsize=12, fontweight='bold')
+                         fontsize=12, fontweight='bold')
             ax.set_ylim(0, 1.1)
             ax.yaxis.set_major_formatter(self.decimal_formatter)
             ax.grid(True, axis='y', linestyle=':', alpha=0.6)
 
-            # Add value labels on bars
             for bar, mean, std in zip(bars, means, stds):
                 ax.annotate(f'{mean:.4f}\n±{std:.4f}'.replace('.', ','),
-                           xy=(bar.get_x() + bar.get_width()/2, mean),
-                           ha='center', va='bottom', fontsize=10)
+                            xy=(bar.get_x() + bar.get_width()/2, mean),
+                            ha='center', va='bottom', fontsize=10)
 
             safe_name = ds_name.replace(" ", "_").replace("-", "_").lower()
             filename = f"overfitting_{safe_name}.png"
@@ -416,11 +368,6 @@ class PlotGenerator:
         return saved_files
 
     def generate_all_plots(self, class_labels: Optional[Dict[str, List[str]]] = None) -> Dict[str, List[str]]:
-        """
-        Generate all plots from existing CSV files.
-
-        Returns dict mapping plot category to list of saved file paths.
-        """
         print("\n" + "=" * 70)
         print("PLOT GENERATION - Creating all visualizations")
         print("=" * 70)

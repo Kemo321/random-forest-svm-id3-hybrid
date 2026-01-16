@@ -1,13 +1,4 @@
-"""
-Data Generator - generates CSV results for all experimental scenarios.
-
-This module handles:
-- Scenario 1: Impact of p_svm (T=20, C=1.0, p_svm ∈ {0.0, 0.2, 0.5, 0.8, 1.0})
-- Scenario 2: Impact of T (p_svm=0.5, C=1.0, T ∈ {10, 20, 50, 100})
-- Scenario 3: Impact of C (p_svm=1.0, T=20, C ∈ {0.1, 1.0, 10.0, 50.0})
-- Heatmaps: Confusion matrices (T=20, p_svm=0.5, C=1.0)
-- Overfitting: Train vs Test accuracy comparison
-"""
+# Authors: Jan Szwagierczak
 
 import os
 from typing import Dict, Any, Type, List, Tuple
@@ -19,9 +10,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 
 
 class DataGenerator:
-    """Generates experimental results as CSV files."""
-
-    # Default experimental parameters from badania.txt
+    # Default experimental parameters
     DEFAULT_N_REPEATS = 25
     DEFAULT_N_SPLITS = 5
 
@@ -40,7 +29,7 @@ class DataGenerator:
     SCENARIO3_T = 20
     SCENARIO3_C_VALUES = [0.1, 1.0, 10.0, 50.0]
 
-    # Heatmaps and Overfitting params (reuse from Scenario 1 p_svm=0.5)
+    # Heatmaps and Overfitting
     COMMON_T = 20
     COMMON_P_SVM = 0.5
     COMMON_C = 1.0
@@ -56,11 +45,9 @@ class DataGenerator:
         self.results_dir = results_dir
         os.makedirs(results_dir, exist_ok=True)
 
-        # Cache for reusing computed results
         self._cached_results: Dict[str, Any] = {}
 
     def _get_cache_key(self, ds_name: str, T: int, p_svm: float, C: float) -> str:
-        """Generate unique cache key for model parameters."""
         return f"{ds_name}_T{T}_p{p_svm}_C{C}"
 
     def run_cv(
@@ -71,13 +58,9 @@ class DataGenerator:
         model_class: Type[BaseEstimator],
         model_params: Dict[str, Any],
     ) -> Dict[str, float]:
-        """
-        Run cross-validation experiment with specified parameters.
-
-        Returns dict with: mean_acc, std_acc, min_acc, max_acc
-        """
+        # Run cross-validation experiments.
         accuracies: List[float] = []
-        base_seed: int = 42  # Fixed seed for reproducibility
+        base_seed: int = 42
 
         for i in range(self.n_repeats):
             current_seed: int = base_seed + i
@@ -121,15 +104,10 @@ class DataGenerator:
         model_class: Type[BaseEstimator],
         model_params: Dict[str, Any],
     ) -> Dict[str, Any]:
-        """
-        Run cross-validation with both train and test accuracy measurement.
-        Used for overfitting analysis and confusion matrix generation.
+        # Run cross-validation and collect train/test accuracies.
 
-        Performs n_repeats independent CV runs, each with n_splits folds.
-        Returns aggregated train/test accuracies and confusion matrix.
-        """
-        train_accs: List[float] = []  # Per-repeat mean train accuracy
-        test_accs: List[float] = []   # Per-repeat mean test accuracy
+        train_accs: List[float] = []
+        test_accs: List[float] = []
         all_y_test: List[np.ndarray] = []
         all_preds: List[np.ndarray] = []
         base_seed: int = 42
@@ -158,25 +136,20 @@ class DataGenerator:
 
                 model.fit(X_train_tuple, y_train)
 
-                # Train accuracy (on training fold)
                 train_preds = model.predict(X_train_tuple)
                 train_acc = accuracy_score(y_train, train_preds)
                 fold_train_accs.append(train_acc)
 
-                # Test accuracy (on test fold)
                 test_preds = model.predict(X_test_tuple)
                 test_acc = accuracy_score(y_test, test_preds)
                 fold_test_accs.append(test_acc)
 
-                # Collect for confusion matrix
                 all_y_test.append(y_test)
                 all_preds.append(test_preds)
 
-            # Mean accuracy for this repeat (across folds)
             train_accs.append(float(np.mean(fold_train_accs)))
             test_accs.append(float(np.mean(fold_test_accs)))
 
-        # Aggregate confusion matrix from all folds of all repeats
         y_test_combined = np.concatenate(all_y_test)
         preds_combined = np.concatenate(all_preds)
         cm = confusion_matrix(y_test_combined, preds_combined)
@@ -197,16 +170,11 @@ class DataGenerator:
             "confusion_matrix": cm,
         }
 
-
     def generate_scenario1_results(
         self,
         datasets_config: List[Dict[str, Any]],
         model_class: Type[BaseEstimator],
     ) -> pd.DataFrame:
-        """
-        Scenario 1 (4.2): Impact of p_svm on quality.
-        T=20, C=1.0, p_svm ∈ {0.0, 0.2, 0.5, 0.8, 1.0}
-        """
         print("\n" + "=" * 60)
         print("Scenario 1: Impact of p_svm (T=20, C=1.0)")
         print("=" * 60)
@@ -236,7 +204,6 @@ class DataGenerator:
 
                     stats = self.run_cv(X_id3, X_svm, y, model_class, params)
 
-                    # Cache result with common params for reuse
                     cache_key = self._get_cache_key(
                         ds_name, self.SCENARIO1_T, p_svm, self.SCENARIO1_C
                     )
@@ -267,10 +234,6 @@ class DataGenerator:
         datasets_config: List[Dict[str, Any]],
         model_class: Type[BaseEstimator],
     ) -> pd.DataFrame:
-        """
-        Scenario 2 (4.3): Impact of T (estimator count) on quality.
-        p_svm=0.5, C=1.0, T ∈ {10, 20, 50, 100}
-        """
         print("\n" + "=" * 60)
         print("Scenario 2: Impact of T (p_svm=0.5, C=1.0)")
         print("=" * 60)
@@ -290,7 +253,6 @@ class DataGenerator:
                     X_svm = X_id3
 
                 for T in self.SCENARIO2_T_VALUES:
-                    # Check cache first (T=20 should be cached from Scenario 1)
                     cache_key = self._get_cache_key(
                         ds_name, T, self.SCENARIO2_P_SVM, self.SCENARIO2_C
                     )
@@ -333,10 +295,6 @@ class DataGenerator:
         datasets_config: List[Dict[str, Any]],
         model_class: Type[BaseEstimator],
     ) -> pd.DataFrame:
-        """
-        Scenario 3 (4.4): Impact of C (SVM regularization) on quality.
-        p_svm=1.0, T=20, C ∈ {0.1, 1.0, 10.0, 50.0}
-        """
         print("\n" + "=" * 60)
         print("Scenario 3: Impact of C (p_svm=1.0, T=20)")
         print("=" * 60)
@@ -356,7 +314,6 @@ class DataGenerator:
                     X_svm = X_id3
 
                 for C in self.SCENARIO3_C_VALUES:
-                    # Check cache first (C=1.0 with p_svm=1.0 should be from Scenario 1)
                     cache_key = self._get_cache_key(
                         ds_name, self.SCENARIO3_T, self.SCENARIO3_P_SVM, C
                     )
@@ -399,16 +356,6 @@ class DataGenerator:
         datasets_config: List[Dict[str, Any]],
         model_class: Type[BaseEstimator],
     ) -> Tuple[pd.DataFrame, Dict[str, np.ndarray]]:
-        """
-        Generate overfitting analysis (Train vs Test accuracy).
-        Also generates confusion matrices for heatmaps.
-
-        Parameters: T=20, p_svm=0.5, C=1.0 (same as default config)
-
-        Returns:
-            - DataFrame with train/test accuracy comparison
-            - Dict of confusion matrices by dataset name
-        """
         print("\n" + "=" * 60)
         print("Overfitting Analysis & Confusion Matrices")
         print(f"(T={self.COMMON_T}, p_svm={self.COMMON_P_SVM}, C={self.COMMON_C})")
@@ -457,7 +404,6 @@ class DataGenerator:
                     "delta": eval_result["delta"],
                 })
 
-                # Save confusion matrix
                 cm = eval_result["confusion_matrix"]
                 confusion_matrices[ds_name] = cm
 
@@ -485,28 +431,19 @@ class DataGenerator:
         datasets_config: List[Dict[str, Any]],
         model_class: Type[BaseEstimator],
     ) -> Dict[str, pd.DataFrame]:
-        """
-        Generate all experimental results.
-
-        Returns dict of DataFrames with keys:
-        - 'p_svm': Scenario 1 results
-        - 'estimator_count': Scenario 2 results
-        - 'C': Scenario 3 results
-        - 'overfitting': Train vs Test comparison
-        """
         print("\n" + "=" * 70)
         print("DATA GENERATION - Starting all experiments")
         print("=" * 70)
 
         results = {}
 
-        # Run Scenario 1 first - this caches results for p_svm=0.5, T=20, C=1.0
+        # Scenario 1 first
         results['p_svm'] = self.generate_scenario1_results(datasets_config, model_class)
 
-        # Scenario 2 - will use cached T=20 result
+        # Scenario 2
         results['estimator_count'] = self.generate_scenario2_results(datasets_config, model_class)
 
-        # Scenario 3 - will use cached p_svm=1.0, T=20, C=1.0 from Scenario 1
+        # Scenario 3
         results['C'] = self.generate_scenario3_results(datasets_config, model_class)
 
         # Overfitting analysis with confusion matrices

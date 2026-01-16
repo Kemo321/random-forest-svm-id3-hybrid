@@ -1,3 +1,5 @@
+# Authors: Tomek Okoń
+
 from .ID3Classifier import ID3Classifier
 from sklearn.svm import LinearSVC
 import numpy as np

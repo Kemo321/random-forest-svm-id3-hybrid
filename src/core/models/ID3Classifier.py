@@ -1,3 +1,5 @@
+# Authors: Tomek Okoń
+
 from .TreeNode import TreeNode
 import numpy as np
 from typing import List

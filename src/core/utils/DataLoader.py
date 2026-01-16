@@ -1,3 +1,5 @@
+# Authors: Jan Szwagierczak, Tomasz Okoń
+
 from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder, LabelEncoder, OneHotEncoder
 from sklearn.datasets import load_breast_cancer
 import openml
@@ -11,7 +13,7 @@ class DataLoader:
         X = data.data
         y = data.target
 
-        print(f"DEBUG - Dataset name: Wisconsin Breast Cancer")
+        print("DEBUG - Dataset name: Wisconsin Breast Cancer")
         print(f"DEBUG - Dataset description: {data.DESCR[:300] if data.DESCR else 'No description'}")
         print(f"DEBUG - Number of instances: {X.shape[0]}")
         print(f"DEBUG - Number of features: {X.shape[1]}")

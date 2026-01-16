@@ -1,3 +1,5 @@
+# Authors: Tomek Okoń
+
 from typing import Any, Dict, Optional
 import numpy as np
 

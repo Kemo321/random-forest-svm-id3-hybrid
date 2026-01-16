@@ -1,3 +1,5 @@
+# Authors: Tomek Okoń
+
 import pytest
 import numpy as np
 from src.core.models.TreeNode import TreeNode
