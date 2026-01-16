@@ -1,5 +1,5 @@
 Dataset,ID3,SkTree,Hybrid,SkRF,H-RF Diff
 Mushroom Data Set,1.0000,1.0000,0.9996,1.0000,-0.0004
 Wisconsin Breast Cancer,0.9240,0.9240,0.9532,0.9415,0.0117
-Wine Quality - Red,0.7554,0.7662,0.6810,0.8149,-0.1338
+Wine Quality - Red,0.7458,0.7542,0.7250,0.7812,-0.0563
 Car Evaluation,0.9383,0.9750,0.7784,0.9692,-0.1908

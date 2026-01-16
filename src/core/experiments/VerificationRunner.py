@@ -1,8 +1,7 @@
 import pandas as pd
-import numpy as np
 from typing import Any, Callable, Dict, List, Tuple, Union
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from core.models.ID3Classifier import ID3Classifier
@@ -15,8 +14,9 @@ DatasetConfig = Dict[str, Any]
 
 
 class VerificationRunner:
-    def __init__(self, random_state: int = 42) -> None:
+    def __init__(self, random_state: int = 42, results_dir: str = "./results") -> None:
         self.random_state: int = random_state
+        self.results_dir: str = results_dir
 
     def run(self, datasets_config: List[DatasetConfig]) -> None:
         print("\n" + "=" * 90)
@@ -65,22 +65,6 @@ class VerificationRunner:
                 rf_sk.fit(X_id3_tr, y_train)
                 acc_rf = accuracy_score(y_test, rf_sk.predict(X_id3_te))
 
-                cm_id3 = confusion_matrix(y_test, id3.predict(X_id3_te))
-                cm_hybrid = confusion_matrix(y_test, hybrid.predict((X_id3_te, X_svm_te)))
-                cm_rf = confusion_matrix(y_test, rf_sk.predict(X_id3_te))
-
-                print(f"\n  Confusion Matrices for {ds_name}:")
-                print(f"  ID3:\n{cm_id3}")
-                print(f"  Hybrid:\n{cm_hybrid}")
-                print(f"  sklearn RF:\n{cm_rf}")
-
-                cm_dir = os.path.join('results', 'confusion_matrices')
-                os.makedirs(cm_dir, exist_ok=True)
-                ds_name_clean = ds_name.replace(' ', '_').replace('-', '_')
-                np.savetxt(os.path.join(cm_dir, f"cm_id3_{ds_name_clean}.csv"), cm_id3, delimiter=',', fmt='%d')
-                np.savetxt(os.path.join(cm_dir, f"cm_hybrid_{ds_name_clean}.csv"), cm_hybrid, delimiter=',', fmt='%d')
-                np.savetxt(os.path.join(cm_dir, f"cm_rf_{ds_name_clean}.csv"), cm_rf, delimiter=',', fmt='%d')
-
                 results.append({
                     "Dataset": ds_name,
                     "ID3": f"{acc_id3:.4f}",
@@ -98,6 +82,6 @@ class VerificationRunner:
         df_ver = pd.DataFrame(results)
         print("\n" + df_ver.to_string(index=False))
 
-        csv_path = os.path.join('results', "verification_results.csv")
+        csv_path = os.path.join(self.results_dir, "verification_results.csv")
         df_ver.to_csv(csv_path, index=False)
         print(f"\nVerification results saved to {csv_path}\n")
