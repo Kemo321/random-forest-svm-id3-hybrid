@@ -40,9 +40,13 @@ warnings.simplefilter(action='ignore', category=RuntimeWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 
 
-def get_datasets_config():
-    """Define all datasets to be used in experiments."""
-    return [
+def get_datasets_config(dataset_filter=None):
+    """Define all datasets to be used in experiments.
+
+    Args:
+        dataset_filter: Optional name to filter only specific dataset
+    """
+    all_datasets = [
         {
             "name": "Mushroom Data Set",
             "loader": lambda: DataLoader.load_mushroom_data(),
@@ -62,8 +66,24 @@ def get_datasets_config():
             "name": "Car Evaluation",
             "loader": lambda: DataLoader.load_car_data(),
             "class_labels": ["unacc", "acc", "good", "vgood"],
+        },
+        {
+            "name": "Synthetic Diagonal",
+            "loader": lambda: DataLoader.load_diagonal_data(n_samples=1000),
+            "class_labels": ["below", "above"],
         }
     ]
+
+    if dataset_filter:
+        # Filter by name (case-insensitive partial match)
+        filtered = [ds for ds in all_datasets
+                   if dataset_filter.lower() in ds["name"].lower()]
+        if not filtered:
+            available = [ds["name"] for ds in all_datasets]
+            raise ValueError(f"Dataset '{dataset_filter}' not found. Available: {available}")
+        return filtered
+
+    return all_datasets
 
 
 def run_data_generation(datasets_config, results_dir="./results"):
@@ -136,6 +156,8 @@ def main():
                         help='Directory for CSV results')
     parser.add_argument('--plots-dir', type=str, default=default_plots_dir,
                         help='Directory for plots')
+    parser.add_argument('--dataset', type=str, default=None,
+                        help='Run only for specific dataset (partial name match)')
 
     args = parser.parse_args()
 
@@ -143,7 +165,7 @@ def main():
     os.makedirs(args.results_dir, exist_ok=True)
     os.makedirs(args.plots_dir, exist_ok=True)
 
-    datasets_config = get_datasets_config()
+    datasets_config = get_datasets_config(args.dataset)
 
     if args.verification:
         run_verification(datasets_config, args.results_dir)

@@ -129,6 +129,29 @@ class DataLoader:
 
         return X_id3, X_svm, y
 
+    @staticmethod
+    def load_diagonal_data(n_samples=2000, n_bins=5):
+        rng = np.random.default_rng(42)
+        X = rng.uniform(0, 1, size=(n_samples, 10))
+        print(f"DEBUG - N samples: {X.shape[0]}, ")
+
+        # Class 1: sum > 5, Class 0: sum <= 5
+        clean_sum = X.sum(axis=1)
+        margin = 0.1
+
+        keep_mask = np.abs(clean_sum - 5.0) > margin
+        X = X[keep_mask]
+        y = (X.sum(axis=1) > 5.0).astype(int)
+
+        print("DEBUG - Generated 10D Hyper-Diagonal dataset")
+        print(f"DEBUG - N samples: {X.shape[0]}, N features: 10")
+
+        est = KBinsDiscretizer(n_bins=n_bins, encode='ordinal', strategy='quantile')
+        X_id3 = est.fit_transform(X).astype(int)
+
+        X_svm = X
+        return X_id3, X_svm, y
+
 
 if __name__ == "__main__":
     # wine quality red

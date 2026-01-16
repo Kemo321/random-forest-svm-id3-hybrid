@@ -101,6 +101,7 @@ Do badań wykorzystano cztery zbiory danych o zróżnicowanej charakterystyce (t
         Wisconsin Breast Cancer & 569 & 30 & Ciągłe & 2 \\
         Wine Quality (Red) & 1599 & 11 & Ciągłe & 2 \\
         Car Evaluation & 1728 & 6 & Kategoryczne & 4 \\
+        Synthetic Diagonal & 925 & 10 & Ciągłe & 2 \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -111,6 +112,7 @@ Szczegółowy rozkład klas w zbiorach:
     \item \textbf{Wisconsin Breast Cancer:} 357 (benign), 212 (malignant) - zbiór lekko niezbalansowany.
     \item \textbf{Wine Quality (Red):} 744 (low quality), 855 (high quality) - zbiór lekko niezbalansowany. Zastosowano binaryzację etykiet, przyjmując próg jakości \texttt{quality} $\geq 6$ jako klasę pozytywną.
     \item \textbf{Car Evaluation:} 1210 (unacc), 384 (acc), 69 (good), 65 (vgood) - zbiór silnie niezbalansowany.
+    \item \textbf{Synthetic Diagonal:} Zbiór wygenerowany specjalnie do testów. Granica decyzyjna zdefiniowana jest jako hiperpłaszczyzna. Teoretycznie faworyzuje klasyfikatory liniowe (SVM), a jest trudny dla drzew decyzyjnych (problem aproksymacji schodkowej).
 \end{itemize}
 
 \subsection{Procedura eksperymentalna}
@@ -143,7 +145,7 @@ W celu weryfikacji poprawności implementacji porównano wyniki autorskiego drze
     \end{tabular}
 \end{table}
 
-\textbf{Wnioski:} Autorska implementacja ID3 osiąga identyczne wyniki jak \texttt{DecisionTreeClassifier} na zbiorze Mushroom (1,0000) oraz Breast Cancer (0,9240), co potwierdza poprawność algorytmu. Model hybrydowy przewyższa las losowy na zbiorze Breast Cancer ($+1,17$ p.p.), natomiast na zbiorach z cechami kategorycznymi (Car Evaluation) oraz wieloklasowych radzi sobie gorzej niż metoda referencyjna - co jest zgodne z oczekiwaniami dla liniowego SVM. Na zbiorze Wine Quality model hybrydowy (0,725) ustępuje referencyjnemu lasowi losowemu (0,781) o 5,6 p.p.
+\textbf{Wnioski:} Autorska implementacja ID3 osiąga identyczne wyniki jak \texttt{DecisionTreeClassifier} na zbiorze Mushroom (1,0000) oraz Breast Cancer (0,9240), co potwierdza poprawność algorytmu. Na zbiorze Mushroom różnice między modelem hybrydowym a referencyjnym są znikome i wynikają prawdopodobnie z fluktuacji losowych, a nie z przewagi którejkolwiek metody. Model hybrydowy przewyższa las losowy na zbiorze Breast Cancer ($+1,17$ p.p.), natomiast na zbiorach z cechami kategorycznymi (Car Evaluation) oraz wieloklasowych radzi sobie gorzej niż metoda referencyjna - co jest zgodne z oczekiwaniami dla liniowego SVM. Na zbiorze Wine Quality model hybrydowy (0,725) ustępuje referencyjnemu lasowi losowemu (0,781) o 5,6 p.p.
 
 \subsection{Scenariusz 1: Wpływ udziału SVM w lesie ($p_{svm}$)}
 Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten określa, jak duża część lasu składa się z klasyfikatorów SVM (reszta to ID3). W eksperymencie ustalono liczbę estymatorów $T=20$ oraz parametr regularyzacji SVM $C=1{,}0$.
@@ -172,6 +174,12 @@ Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten ok
         \centering
         \includegraphics[width=\textwidth]{plots/scenario1_p_svm_car_evaluation.png}
         \caption{Car Evaluation}
+    \end{subfigure}
+
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{plots/scenario1_p_svm_synthetic_diagonal.png}
+        \caption{Synthetic Diagonal}
     \end{subfigure}
     \caption{Średnia dokładność w zależności od udziału SVM ($p_{svm}$) dla $T=20$ oraz $C=1{,}0$. Słupki błędów oznaczają odchylenie standardowe.}
     \label{fig:psvm}
@@ -211,7 +219,8 @@ Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten ok
 
 \textbf{Wnioski:}
 \begin{itemize}
-    \item Na zbiorze Mushroom (rys.~\ref{fig:psvm}a) obserwujemy odwrotny trend niż na pozostałych zbiorach - zwiększanie udziału SVM poprawia wyniki. Dla czystego ID3 ($p_{svm}=0\%$) dokładność wynosi ok. 0,97, podczas gdy dla czystego SVM ($p_{svm}=100\%$) osiągamy wartość zbieżną do 1,00. Zbiór ten jest liniowo separowalny, co stanowi idealne środowisko dla SVM.
+    \item Na zbiorze Mushroom (rys.~\ref{fig:psvm}a) wyniki są zbliżone do 1,0, a obserwowane wahania mają charakter losowy. Oznacza to, że oba typy klasyfikatorów radzą sobie z tym problemem niemal bezbłędnie.
+    \item Na zbiorze Synthetic Diagonal (rys.~\ref{fig:psvm}e) widoczna jest wyraźna przewaga SVM. Dokładność rośnie z 79,3\% (dla czystego ID3) do 96,1\% (dla czystego SVM). Wynika to z geometrii problemu -- granica decyzyjna jest ''ukośną'' hiperpłaszczyzną, co jest trywialne dla liniowego SVM, a powoduje kłopoty dla drzewa decyzyjnego.
     \item Na zbiorze Breast Cancer (tab.~3, rys.~\ref{fig:psvm}b) hybrydyzacja przyniosła najlepsze rezultaty. Optimum uzyskano dla $p_{svm}=50\%$ (dokładność 0,960), co jest wynikiem wyższym niż dla czystego ID3 (0,945) oraz czystego SVM (0,957). Sugeruje to, że model hybrydowy skutecznie wykorzystuje różniące się własności zastosowanych klasyfikatorów: drzewo umożliwia modelowanie nieliniowych granic decyzyjnych, a SVM zapewnia liniową separację w przestrzeni cech.
     \item Na zbiorze Wine Quality (tab.~4, rys.~\ref{fig:psvm}c) obserwujemy tendencję spadkową - najlepsze wyniki uzyskano dla czystego ID3 ($p_{svm}=0\%$, dokładność 0,744), a zwiększanie udziału SVM stopniowo pogarszało jakość klasyfikacji (spadek do 0,708 dla $p_{svm}=100\%$). Sugeruje to, że relacje w tym zbiorze są nieliniowe i lepiej modelowane przez drzewa decyzyjne niż przez liniowy SVM.
     \item Na zbiorze Car Evaluation (rys.~\ref{fig:psvm}d) odnotowano podobny trend jak dla Wine Quality - spadek jakości wraz ze wzrostem udziału SVM (z 0,829 dla ID3 do 0,796 dla SVM). Relacje w tym zbiorze są silnie nieliniowe i kategoryczne, co faworyzuje drzewa decyzyjne.
@@ -385,6 +394,7 @@ Zrealizowany projekt pozwolił na zbadanie właściwości hybrydowego lasu klasy
     \item \textbf{Czego się nauczyliśmy:}
     \begin{itemize}
         \item Jak dobór klasyfikatora bazowego zależy od charakteru danych: SVM (liniowy) preferuje zbiory (w przybliżeniu) liniowo separowalne, natomiast ID3 lepiej radzi sobie z nieliniowymi zależnościami oraz danymi kategorycznymi.
+        \item Eksperyment na zbiorze \textit{Synthetic Diagonal} potwierdził przewagę liniowego SVM w problemach z ukośną, liniową granicą decyzyjną, gdzie klasyczne, drzewa decyzyjne mają trudności z aproksymacją funkcji.
         \item Jak istotna jest różnorodność estymatorów w zespole: zastosowanie \textit{Random Subspace Method} (domyślnie $m=\sqrt{M}$) okazało się kluczowe, aby modele w lesie podejmowały odmienne decyzje i żeby głosowanie miało sens.
         \item Jak interpretować wyniki eksperymentów: analiza wariancji (odchylenia standardowego) oraz macierzy pomyłek pozwala lepiej ocenić zachowanie, efektywność modelu niż sama dokładność.
     \end{itemize}
