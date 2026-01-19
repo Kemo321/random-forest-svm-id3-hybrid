@@ -10,26 +10,21 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 
 
 class DataGenerator:
-    # Default experimental parameters
     DEFAULT_N_REPEATS = 25
     DEFAULT_N_SPLITS = 5
 
-    # Scenario 1: p_svm impact
     SCENARIO1_T = 20
     SCENARIO1_C = 1.0
     SCENARIO1_P_SVM_VALUES = [0.0, 0.2, 0.5, 0.8, 1.0]
 
-    # Scenario 2: T impact
     SCENARIO2_P_SVM = 0.5
     SCENARIO2_C = 1.0
     SCENARIO2_T_VALUES = [10, 20, 50, 100]
 
-    # Scenario 3: C impact
     SCENARIO3_P_SVM = 1.0
     SCENARIO3_T = 20
     SCENARIO3_C_VALUES = [0.1, 1.0, 10.0, 50.0]
 
-    # Heatmaps and Overfitting
     COMMON_T = 20
     COMMON_P_SVM = 0.5
     COMMON_C = 1.0
@@ -58,7 +53,6 @@ class DataGenerator:
         model_class: Type[BaseEstimator],
         model_params: Dict[str, Any],
     ) -> Dict[str, float]:
-        # Run cross-validation experiments.
         accuracies: List[float] = []
         base_seed: int = 42
 
@@ -104,7 +98,6 @@ class DataGenerator:
         model_class: Type[BaseEstimator],
         model_params: Dict[str, Any],
     ) -> Dict[str, Any]:
-        # Run cross-validation and collect train/test accuracies.
 
         train_accs: List[float] = []
         test_accs: List[float] = []
@@ -437,16 +430,12 @@ class DataGenerator:
 
         results = {}
 
-        # Scenario 1 first
         results['p_svm'] = self.generate_scenario1_results(datasets_config, model_class)
 
-        # Scenario 2
         results['estimator_count'] = self.generate_scenario2_results(datasets_config, model_class)
 
-        # Scenario 3
         results['C'] = self.generate_scenario3_results(datasets_config, model_class)
 
-        # Overfitting analysis with confusion matrices
         results['overfitting'], _ = self.generate_overfitting_results(datasets_config, model_class)
 
         print("\n" + "=" * 70)

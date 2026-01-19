@@ -78,9 +78,9 @@ class TestID3Classifier:
 
     def test_multiclass_classification(self, classifier):
         X = np.array([
-            [0, 0],  # Class 0
-            [1, 1],  # Class 1
-            [2, 2]   # Class 2
+            [0, 0],
+            [1, 1],
+            [2, 2]
         ])
         y = np.array([0, 1, 2])
 

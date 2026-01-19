@@ -75,6 +75,7 @@ W stosunku do pierwotnych założeń wprowadzono następujące doprecyzowania:
 \begin{itemize}
     \item \textbf{Random Subspace Method:} Aby zapewnić różnorodność klasyfikatorów, wprowadzono losowanie podzbioru cech dla każdego estymatora. Wartość $m$ (liczba cech używanych przez pojedynczy klasyfikator) domyślnie ustawiono na $\sqrt{M}$ (gdzie $M$ to liczba cech), z dynamicznym dostosowaniem dla zbiorów o bardzo małej liczbie atrybutów.
     \item \textbf{Obsługa danych heterogenicznych:} Las obsługuje jednocześnie dwie reprezentacje danych: dyskretną (dla ID3) oraz ciągłą/zakodowaną One-Hot (dla SVM), przekazując do konkretnego estymatora odpowiedni format danych wejściowych.
+    \item \textbf{Syntetyczny zbiór danych:} Wygenerowano dodatkowy zbiór \textit{Synthetic Diagonal}, w którym granica decyzyjna jest zdefiniowana jako hiperpłaszczyzna $\sum_{i=1}^{10} x_i = 5$. Zbiór ten został stworzony w celu wprowadzenia przykładu, gdzie liniowy SVM ma przewagę nad drzewami decyzyjnymi.
 \end{itemize}
 
 \subsection{Weryfikacja poprawności (Testy)}
