@@ -239,60 +239,6 @@ class PlotGenerator:
 
         return saved_files
 
-    def plot_confusion_matrices_grid(
-        self,
-        class_labels: Optional[Dict[str, List[str]]] = None
-    ) -> str:
-        print("\nGenerating confusion matrices grid (2x2)...")
-
-        cm_dir = os.path.join(self.results_dir, "confusion_matrices")
-        if not os.path.exists(cm_dir):
-            print(f"  Warning: {cm_dir} not found")
-            return ""
-
-        cm_files = sorted([f for f in os.listdir(cm_dir) if f.startswith("cm_hybrid_") and f.endswith(".csv")])
-
-        if len(cm_files) < 4:
-            print(f"  Warning: Expected 4 confusion matrices, found {len(cm_files)}")
-            if len(cm_files) == 0:
-                return ""
-
-        fig, axes = plt.subplots(2, 2, figsize=(14, 12))
-        axes = axes.flatten()
-
-        for idx, cm_file in enumerate(cm_files[:4]):
-            ds_name_clean = cm_file.replace("cm_hybrid_", "").replace(".csv", "")
-            ds_name = ds_name_clean.replace("_", " ")
-
-            cm_path = os.path.join(cm_dir, cm_file)
-            cm = np.loadtxt(cm_path, delimiter=',', dtype=int)
-
-            labels = None
-            if class_labels and ds_name in class_labels:
-                labels = class_labels[ds_name]
-
-            sns.heatmap(
-                cm,
-                annot=True,
-                fmt='d',
-                cmap='Blues',
-                ax=axes[idx],
-                xticklabels=labels if labels else 'auto',
-                yticklabels=labels if labels else 'auto',
-                cbar_kws={'label': 'Count'}
-            )
-
-            axes[idx].set_title(ds_name, fontsize=12, fontweight='bold')
-            axes[idx].set_xlabel("Predicted", fontsize=10)
-            axes[idx].set_ylabel("True", fontsize=10)
-
-        fig.suptitle("Confusion Matrices for All Datasets\n(T=20, p_svm=0.5, C=1.0)",
-                     fontsize=14, fontweight='bold')
-        plt.tight_layout()
-
-        filename = "heatmaps_grid_2x2.png"
-        return self._save_figure(fig, filename)
-
     def plot_overfitting_analysis(self, csv_path: Optional[str] = None) -> List[str]:
         print("\nGenerating overfitting analysis plot...")
 
@@ -378,7 +324,6 @@ class PlotGenerator:
         results['scenario2'] = self.plot_scenario2_estimator_count()
         results['scenario3'] = self.plot_scenario3_C()
         results['heatmaps'] = self.plot_confusion_matrices(class_labels)
-        results['heatmaps_grid'] = [self.plot_confusion_matrices_grid(class_labels)]
         results['overfitting'] = self.plot_overfitting_analysis()
 
         print("\n" + "=" * 70)

@@ -154,6 +154,53 @@ class DataLoader:
         X_svm = X
         return X_id3, X_svm, y
 
+    @staticmethod
+    def load_skin_segmentation_data(n_samples=5000, n_bins=5):
+        try:
+            # Skin Segmentation dataset ID 1502
+            dataset = openml.datasets.get_dataset(1502, download_data=True)
+            df, _, _, _ = dataset.get_data(dataset_format='dataframe')
+            print("Skin Segmentation dataset downloaded from OpenML.")
+
+            # Stratified subsampling
+            if len(df) > n_samples:
+                print(f"Subsampling {n_samples} from {len(df)} instances...")
+                # Stratified sampling
+                from sklearn.model_selection import train_test_split
+                _, df = train_test_split(
+                    df,
+                    test_size=n_samples,
+                    stratify=df['Class'],
+                    random_state=42
+                )
+
+            print(f"DEBUG - Dataset name: {dataset.name}")
+            print(f"DEBUG - Number of instances: {df.shape[0]}")
+            print(f"DEBUG - Number of features: {df.shape[1]}")
+            print(f"DEBUG - Columns: {list(df.columns)}")
+
+        except Exception as e:
+            raise RuntimeError(f"Failed to download Skin Segmentation dataset: {e}")
+
+        y_raw = df['Class'].values
+        X = df.drop('Class', axis=1).values
+
+        # OpenML Skin Segmentation: 1 = Skin, 2 = Non-Skin
+        # Remap to 0/1: 1->1, 2->0 (or similar). Let's use LabelEncoder to be safe.
+        le = LabelEncoder()
+        y = le.fit_transform(y_raw)
+
+        unique, counts = np.unique(y, return_counts=True)
+        class_mapping = dict(zip(le.transform(le.classes_), le.classes_))
+        print(f"DEBUG - Class distribution: {', '.join([f'{class_mapping[k]} ({k}): {v}' for k, v in zip(unique, counts)])}")
+
+        est = KBinsDiscretizer(n_bins=n_bins, encode='ordinal', strategy='quantile')
+        X_id3 = est.fit_transform(X).astype(int)
+
+        X_svm = X.astype(float)
+
+        return X_id3, X_svm, y
+
 
 if __name__ == "__main__":
     # wine quality red
@@ -161,3 +208,4 @@ if __name__ == "__main__":
     X_id3, X_svm, y = DataLoader.load_breast_cancer_data()
     X_id3, X_svm, y = DataLoader.load_wine_quality_red_data()
     X_id3, X_svm, y = DataLoader.load_car_data()
+    X_id3, X_svm, y = DataLoader.load_skin_segmentation_data()

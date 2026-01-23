@@ -13,21 +13,21 @@ class DataGenerator:
     DEFAULT_N_REPEATS = 25
     DEFAULT_N_SPLITS = 5
 
-    SCENARIO1_T = 20
-    SCENARIO1_C = 1.0
+    SCENARIO1_T = 50
+    SCENARIO1_C = 10.0
     SCENARIO1_P_SVM_VALUES = [0.0, 0.2, 0.5, 0.8, 1.0]
 
     SCENARIO2_P_SVM = 0.5
-    SCENARIO2_C = 1.0
+    SCENARIO2_C = 10.0
     SCENARIO2_T_VALUES = [10, 20, 50, 100]
 
     SCENARIO3_P_SVM = 1.0
-    SCENARIO3_T = 20
+    SCENARIO3_T = 50
     SCENARIO3_C_VALUES = [0.1, 1.0, 10.0, 50.0]
 
-    COMMON_T = 20
+    COMMON_T = 50
     COMMON_P_SVM = 0.5
-    COMMON_C = 1.0
+    COMMON_C = 10.0
 
     def __init__(
         self,

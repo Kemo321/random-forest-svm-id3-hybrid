@@ -128,28 +128,41 @@ Każdy eksperyment przeprowadzono zgodnie z poniższymi zasadami, aby zapewnić 
 \section{Wyniki eksperymentów}
 
 \subsection{Weryfikacja}
-W celu weryfikacji poprawności implementacji porównano wyniki autorskiego drzewa ID3 oraz modelu hybrydowego z implementacjami referencyjnymi z biblioteki \texttt{scikit-learn}: \texttt{DecisionTreeClassifier} (SkTree) oraz \texttt{RandomForestClassifier} (SkRF).
+W celu weryfikacji poprawności implementacji porównano wyniki autorskiego drzewa ID3 oraz modelu hybrydowego z implementacjami referencyjnymi z biblioteki \texttt{scikit-learn}. Odpowiednio:
+\begin{itemize}
+    \item ID3 - autorska implementacja drzewa decyzyjnego,
+    \item SkTree - \texttt{DecisionTreeClassifier} z biblioteki \texttt{scikit-learn},
+    \item RF - autorska implementacja lasu, parametry: liczba estymatorów $T=50$, $p_{svm}=0\%$ - czyli czysty las z drzew ID3,
+    \item SkRF - \texttt{RandomForestClassifier} z biblioteki \texttt{scikit-learn}, parametry: liczba estymatorów $T=50$, domyślne ustawienia pozostałych parametrów.
+    \item Hybrid - autorska implementacja lasu, parametry optymalne: $T=50$, $p_{svm}=50\%$, $C=10{,}0$,
+    \item H-RF Diff - różnica dokładności między modelem hybrydowym a referencyjnym lasem losowym (Hybrid - RF).
+\end{itemize}
 
 \begin{table}[H]
     \centering
     \caption{Porównanie dokładności implementacji autorskich z referencyjnymi}
     \label{tab:verification}
-    \begin{tabular}{lccccc}
+    \begin{tabular}{lcccccc}
         \toprule
-        \textbf{Zbiór danych} & \textbf{ID3} & \textbf{SkTree} & \textbf{Hybrid} & \textbf{SkRF} & \textbf{H-RF Diff} \\
+        \textbf{Zbiór danych} & \textbf{ID3} & \textbf{SkTree} & \textbf{RF} & \textbf{SkRF} & \textbf{Hybrid} & \textbf{H-RF Diff} \\
         \midrule
-        Mushroom & 1,0000 & 1,0000 & 0,9996 & 1,0000 & $-0,0004$ \\
-        Breast Cancer & 0,9240 & 0,9240 & 0,9532 & 0,9415 & $+0,0117$ \\
-        Wine Quality & 0,7458 & 0,7542 & 0,7250 & 0,7812 & $-0,0563$ \\
-        Car Evaluation & 0,9383 & 0,9750 & 0,7784 & 0,9692 & $-0,1908$ \\
+        Mushroom & 1,0000 & 1,0000 & 0,9996 & 1,0000 & 1,0000 & $-0,0004$ \\
+        Breast Cancer & 0,9240 & 0,9240 & 0,9532 & 0,9415 & 0,9415 & $+0,0117$ \\
+        Wine Quality & 0,7458 & 0,7542 & 0,7250 & 0,7812 & 0,7812 & $-0,0563$ \\
+        Car Evaluation & 0,9383 & 0,9750 & 0,7784 & 0,9692 & 0,9692 & $-0,1908$ \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\textbf{Wnioski:} Autorska implementacja ID3 osiąga identyczne wyniki jak \texttt{DecisionTreeClassifier} na zbiorze Mushroom (1,0000) oraz Breast Cancer (0,9240), co potwierdza poprawność algorytmu. Na zbiorze Mushroom różnice między modelem hybrydowym a referencyjnym są znikome i wynikają prawdopodobnie z fluktuacji losowych, a nie z przewagi którejkolwiek metody. Model hybrydowy przewyższa las losowy na zbiorze Breast Cancer ($+1,17$ p.p.), natomiast na zbiorach z cechami kategorycznymi (Car Evaluation) oraz wieloklasowych radzi sobie gorzej niż metoda referencyjna - co jest zgodne z oczekiwaniami dla liniowego SVM. Na zbiorze Wine Quality model hybrydowy (0,725) ustępuje referencyjnemu lasowi losowemu (0,781) o 5,6 p.p.
+\textbf{Wnioski:}
+
+Porównanie z metodami referencyjnymi wykazało poprawność implementacji autorskiego drzewa ID3 oraz lasu losowego (ID3 vs SkTree oraz RF vs SkRF).
+\\
+
+Autorska implementacja ID3 osiąga identyczne wyniki jak \texttt{DecisionTreeClassifier} na zbiorze Mushroom (1,0000) oraz Breast Cancer (0,9240), co potwierdza poprawność algorytmu. Na zbiorze Mushroom różnice między modelem hybrydowym a referencyjnym są znikome i wynikają prawdopodobnie z fluktuacji losowych, a nie z przewagi którejkolwiek metody. Model hybrydowy przewyższa las losowy na zbiorze Breast Cancer ($+1,17$ p.p.), natomiast na zbiorach z cechami kategorycznymi (Car Evaluation) oraz wieloklasowych radzi sobie gorzej niż metoda referencyjna - co jest zgodne z oczekiwaniami dla liniowego SVM. Na zbiorze Wine Quality model hybrydowy (0,725) ustępuje referencyjnemu lasowi losowemu (0,781) o 5,6 p.p.
 
 \subsection{Scenariusz 1: Wpływ udziału SVM w lesie ($p_{svm}$)}
-Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten określa, jak duża część lasu składa się z klasyfikatorów SVM (reszta to ID3). W eksperymencie ustalono liczbę estymatorów $T=20$ oraz parametr regularyzacji SVM $C=1{,}0$.
+Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten określa, jak duża część lasu składa się z klasyfikatorów SVM (reszta to ID3). W eksperymencie ustalono liczbę estymatorów $T=50$ oraz parametr regularyzacji SVM $C=10{,}0$.
 
 \begin{figure}[H]
     \centering
@@ -182,7 +195,7 @@ Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten ok
         \includegraphics[width=\textwidth]{plots/scenario1_p_svm_synthetic_diagonal.png}
         \caption{Synthetic Diagonal}
     \end{subfigure}
-    \caption{Średnia dokładność w zależności od udziału SVM ($p_{svm}$) dla $T=20$ oraz $C=1{,}0$. Słupki błędów oznaczają odchylenie standardowe.}
+    \caption{Średnia dokładność w zależności od udziału SVM ($p_{svm}$) dla $T=50$ oraz $C=10{,}0$. Słupki błędów oznaczają odchylenie standardowe.}
     \label{fig:psvm}
 \end{figure}
 
@@ -228,7 +241,7 @@ Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten ok
 \end{itemize}
 
 \subsection{Scenariusz 2: Wpływ liczby estymatorów ($T$)}
-Zbadano wpływ rozmiaru lasu $T \in \{10, 20, 50, 100\}$ na stabilność i jakość predykcji. W eksperymencie ustalono udział SVM na $p_{svm}=50\%$ oraz regularyzację $C=1{,}0$.
+Zbadano wpływ rozmiaru lasu $T \in \{10, 20, 50, 100\}$ na stabilność i jakość predykcji. W eksperymencie ustalono udział SVM na $p_{svm}=50\%$ oraz regularyzację $C=10{,}0$.
 
 \begin{figure}[H]
     \centering
@@ -255,7 +268,7 @@ Zbadano wpływ rozmiaru lasu $T \in \{10, 20, 50, 100\}$ na stabilność i jako�
         \includegraphics[width=\textwidth]{plots/scenario2_estimator_count_car_evaluation.png}
         \caption{Car Evaluation}
     \end{subfigure}
-    \caption{Wpływ liczby estymatorów ($T$) na średnią dokładność dla różnych zbiorów danych (dla $p_{svm}=50\%$ oraz $C=1{,}0$).}
+    \caption{Wpływ liczby estymatorów ($T$) na średnią dokładność dla różnych zbiorów danych (dla $p_{svm}=50\%$ oraz $C=10{,}0$).}
     \label{fig:estimator_count}
 \end{figure}
 
@@ -268,7 +281,7 @@ Zbadano wpływ rozmiaru lasu $T \in \{10, 20, 50, 100\}$ na stabilność i jako�
 \end{itemize}
 
 \subsection{Scenariusz 3: Wpływ regularyzacji SVM ($C$)}
-Zbadano wpływ parametru $C \in \{0{,}1; 1; 10; 50\}$ dla części SVM (przy ustalonym $p_{svm}=100\%$). W eksperymencie ustalono liczbę estymatorów $T=20$.
+Zbadano wpływ parametru $C \in \{0{,}1; 1; 10; 50\}$ dla części SVM (przy ustalonym $p_{svm}=100\%$). W eksperymencie ustalono liczbę estymatorów $T=50$.
 
 \begin{figure}[H]
     \centering
@@ -295,7 +308,7 @@ Zbadano wpływ parametru $C \in \{0{,}1; 1; 10; 50\}$ dla części SVM (przy ust
         \includegraphics[width=\textwidth]{plots/scenario3_C_car_evaluation.png}
         \caption{Car Evaluation}
     \end{subfigure}
-    \caption{Wpływ parametru regularyzacji SVM ($C$) na średnią dokładność (dla $T=20$ oraz $p_{svm}=100\%$; wartości $C \in \{0{,}1; 1; 10; 50\}$).}
+    \caption{Wpływ parametru regularyzacji SVM ($C$) na średnią dokładność (dla $T=50$ oraz $p_{svm}=100\%$; wartości $C \in \{0{,}1; 1; 10; 50\}$).}
     \label{fig:svm_C}
 \end{figure}
 
@@ -308,7 +321,7 @@ Zbadano wpływ parametru $C \in \{0{,}1; 1; 10; 50\}$ dla części SVM (przy ust
 \end{itemize}
 
 \subsection{Analiza błędów - Macierze Pomyłek (Heatmapy)}
-Poniżej przedstawiono zagregowane macierze pomyłek (suma z 25 uruchomień) dla modelu hybrydowego ($T=20$, $p_{svm}=50\%$, $C=1{,}0$). Pozwala to ocenić, które klasy są mylone najczęściej.
+Poniżej przedstawiono zagregowane macierze pomyłek (suma z 25 uruchomień) dla modelu hybrydowego ($T=50$, $p_{svm}=50\%$, $C=10{,}0$). Pozwala to ocenić, które klasy są mylone najczęściej.
 
 \begin{figure}[H]
     \centering
@@ -335,7 +348,7 @@ Poniżej przedstawiono zagregowane macierze pomyłek (suma z 25 uruchomień) dla
         \includegraphics[width=\textwidth]{plots/heatmap_Car_Evaluation.png}
         \caption{Car Evaluation}
     \end{subfigure}
-    \caption{Zagregowane macierze pomyłek (heatmapy) dla $T=20$, $p_{svm}=50\%$, $C=1{,}0$.}
+    \caption{Zagregowane macierze pomyłek (heatmapy) dla $T=50$, $p_{svm}=50\%$, $C=10{,}0$.}
     \label{fig:heatmaps}
 \end{figure}
 
@@ -348,7 +361,7 @@ Poniżej przedstawiono zagregowane macierze pomyłek (suma z 25 uruchomień) dla
 \end{itemize}
 
 \subsection{Analiza nadmiernego dopasowania (Overfitting)}
-W celu oceny zjawiska przeuczenia porównano dokładność na zbiorze treningowym i testowym dla modelu hybrydowego ($T=20$, $p_{svm}=50\%$, $C=1{,}0$).
+W celu oceny zjawiska przeuczenia porównano dokładność na zbiorze treningowym i testowym dla modelu hybrydowego ($T=50$, $p_{svm}=50\%$, $C=10{,}0$).
 
 \begin{figure}[H]
     \centering
@@ -375,7 +388,7 @@ W celu oceny zjawiska przeuczenia porównano dokładność na zbiorze treningowy
         \includegraphics[width=\textwidth]{plots/overfitting_car_evaluation.png}
         \caption{Car Evaluation}
     \end{subfigure}
-    \caption{Porównanie dokładności na zbiorze treningowym i testowym (Train vs Test) dla $T=20$, $p_{svm}=50\%$, $C=1{,}0$.}
+    \caption{Porównanie dokładności na zbiorze treningowym i testowym (Train vs Test) dla $T=50$, $p_{svm}=50\%$, $C=10{,}0$.}
     \label{fig:overfitting}
 \end{figure}
 
@@ -394,6 +407,7 @@ Zrealizowany projekt pozwolił na zbadanie właściwości hybrydowego lasu klasy
 \begin{enumerate}
     \item \textbf{Czego się nauczyliśmy:}
     \begin{itemize}
+        \item Uzyskane optymalne parametry modelu hybrydowego to: liczba estymatorów $T=50$, udział SVM $p_{svm}=50\%$, regularyzacja SVM $C=10{,}0$.
         \item Jak dobór klasyfikatora bazowego zależy od charakteru danych: SVM (liniowy) preferuje zbiory (w przybliżeniu) liniowo separowalne, natomiast ID3 lepiej radzi sobie z nieliniowymi zależnościami oraz danymi kategorycznymi.
         \item Eksperyment na zbiorze \textit{Synthetic Diagonal} potwierdził przewagę liniowego SVM w problemach z ukośną, liniową granicą decyzyjną, gdzie klasyczne, drzewa decyzyjne mają trudności z aproksymacją funkcji.
         \item Jak istotna jest różnorodność estymatorów w zespole: zastosowanie \textit{Random Subspace Method} (domyślnie $m=\sqrt{M}$) okazało się kluczowe, aby modele w lesie podejmowały odmienne decyzje i żeby głosowanie miało sens.

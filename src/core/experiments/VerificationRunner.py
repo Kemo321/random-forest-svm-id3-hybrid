@@ -47,32 +47,47 @@ class VerificationRunner:
                     X_svm, y, test_size=0.3, random_state=self.random_state, stratify=y
                 )
 
+                # 1. ID3 (My implementation)
                 id3 = ID3Classifier()
                 id3.fit(X_id3_tr, y_train)
                 acc_id3 = accuracy_score(y_test, id3.predict(X_id3_te))
 
+                # 2. SkTree (Reference Decision Tree)
                 dt = DecisionTreeClassifier(criterion="entropy", random_state=self.random_state)
                 dt.fit(X_id3_tr, y_train)
                 acc_dt = accuracy_score(y_test, dt.predict(X_id3_te))
 
+                # 3. RF (My implementation with p_svm=0 - Forests only)
+                rf_my = HybridSVMForest(
+                    estimator_count=50,
+                    p_svm=0.0,
+                    random_state=self.random_state
+                )
+                rf_my.fit((X_id3_tr, X_svm_tr), y_train)
+                acc_rf = accuracy_score(y_test, rf_my.predict((X_id3_te, X_svm_te)))
+
+                # 4. SkRF (Reference Random Forest)
+                rf_sk = RandomForestClassifier(n_estimators=50, random_state=self.random_state)
+                rf_sk.fit(X_id3_tr, y_train)
+                acc_rf_sk = accuracy_score(y_test, rf_sk.predict(X_id3_te))
+
+                # 5. Hybrid Optimized (My implementation with T=50, p=0.5, C=10)
                 hybrid = HybridSVMForest(
                     estimator_count=50,
                     p_svm=0.5,
+                    C=10.0,
                     random_state=self.random_state
                 )
                 hybrid.fit((X_id3_tr, X_svm_tr), y_train)
                 acc_hybrid = accuracy_score(y_test, hybrid.predict((X_id3_te, X_svm_te)))
 
-                rf_sk = RandomForestClassifier(n_estimators=50, random_state=self.random_state)
-                rf_sk.fit(X_id3_tr, y_train)
-                acc_rf = accuracy_score(y_test, rf_sk.predict(X_id3_te))
-
                 results.append({
                     "Dataset": ds_name,
                     "ID3": f"{acc_id3:.4f}",
                     "SkTree": f"{acc_dt:.4f}",
+                    "RF": f"{acc_rf:.4f}",
+                    "SkRF": f"{acc_rf_sk:.4f}",
                     "Hybrid": f"{acc_hybrid:.4f}",
-                    "SkRF": f"{acc_rf:.4f}",
                     "H-RF Diff": f"{acc_hybrid - acc_rf:.4f}"
                 })
 
@@ -82,6 +97,10 @@ class VerificationRunner:
                 traceback.print_exc()
 
         df_ver = pd.DataFrame(results)
+        # Order columns as requested
+        cols = ["Dataset", "ID3", "SkTree", "RF", "SkRF", "Hybrid", "H-RF Diff"]
+        df_ver = df_ver[cols]
+
         print("\n" + df_ver.to_string(index=False))
 
         csv_path = os.path.join(self.results_dir, "verification_results.csv")
