@@ -1,5 +1,6 @@
-Dataset,ID3,SkTree,Hybrid,SkRF,H-RF Diff
-Mushroom Data Set,1.0000,1.0000,0.9996,1.0000,-0.0004
-Wisconsin Breast Cancer,0.9240,0.9240,0.9532,0.9415,0.0117
-Wine Quality - Red,0.7458,0.7542,0.7250,0.7812,-0.0563
-Car Evaluation,0.9383,0.9750,0.7784,0.9692,-0.1908
+Dataset,ID3,SkTree,RF,SkRF,Hybrid,H-RF Diff
+Mushroom Data Set,1.0000,1.0000,0.9934,1.0000,1.0000,0.0066
+Wisconsin Breast Cancer,0.9240,0.9240,0.9415,0.9415,0.9591,0.0175
+Wine Quality - Red,0.7458,0.7542,0.7438,0.7812,0.7292,-0.0146
+Car Evaluation,0.9383,0.9750,0.8035,0.9692,0.7784,-0.0250
+Synthetic Diagonal,0.6691,0.7734,0.8201,0.8813,0.9317,0.1115

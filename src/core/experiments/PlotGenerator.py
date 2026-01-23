@@ -266,7 +266,7 @@ class PlotGenerator:
 
         ax.set_xlabel("Dataset", fontsize=12)
         ax.set_ylabel("Accuracy", fontsize=12)
-        ax.set_title("Overfitting Analysis: Train vs Test Accuracy\n(T=20, p_svm=0.5, C=1.0)",
+        ax.set_title("Overfitting Analysis: Train vs Test Accuracy\n(T=50, p_svm=0.5, C=10.0)",
                      fontsize=14, fontweight='bold')
         ax.set_xticks(x)
         ax.set_xticklabels(df["dataset"], rotation=15, ha='right')
