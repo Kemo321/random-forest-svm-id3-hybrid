@@ -119,8 +119,8 @@ Szczegółowy rozkład klas w zbiorach:
 \subsection{Procedura eksperymentalna}
 Każdy eksperyment przeprowadzono zgodnie z poniższymi zasadami, aby zapewnić rzetelność i powtarzalność wyników:
 \begin{itemize}
-    \item \textbf{Weryfikacja poprawności:} Przed przystąpieniem do głównych eksperymentów wykonano testy jednostkowe oraz porównano wyniki autorskiej implementacji z metodami referencyjnymi (biblioteka \texttt{scikit-learn}).
     \item \textbf{Wielokrotne uruchomienia:} Każdy pomiar stanowi średnią z 25 niezależnych uruchomień algorytmu. W każdej iteracji stosowano inne ziarno losowości (\texttt{random\_state}).
+    \item \textbf{Weryfikacja poprawności:} Przed przystąpieniem do głównych eksperymentów wykonano testy jednostkowe oraz porównano wyniki autorskiej implementacji z metodami referencyjnymi (biblioteka \texttt{scikit-learn}).
     \item \textbf{Podział danych:} Zastosowano 5-krotną walidację krzyżową, co w połączeniu z 25 powtórzeniami daje łącznie 125 prób trenowania dla każdej konfiguracji parametrów.
     \item \textbf{Miary jakości:} Raportowana jest średnia dokładność (Accuracy), odchylenie standardowe, wynik minimalny i maksymalny oraz zagregowane macierze pomyłek (sumowane ze wszystkich uruchomień).
 \end{itemize}
@@ -146,10 +146,11 @@ W celu weryfikacji poprawności implementacji porównano wyniki autorskiego drze
         \toprule
         \textbf{Zbiór danych} & \textbf{ID3} & \textbf{SkTree} & \textbf{RF} & \textbf{SkRF} & \textbf{Hybrid} & \textbf{H-RF Diff} \\
         \midrule
-        Mushroom & 1,0000 & 1,0000 & 0,9996 & 1,0000 & 1,0000 & $-0,0004$ \\
-        Breast Cancer & 0,9240 & 0,9240 & 0,9532 & 0,9415 & 0,9415 & $+0,0117$ \\
-        Wine Quality & 0,7458 & 0,7542 & 0,7250 & 0,7812 & 0,7812 & $-0,0563$ \\
-        Car Evaluation & 0,9383 & 0,9750 & 0,7784 & 0,9692 & 0,9692 & $-0,1908$ \\
+        Mushroom & 1,0000 & 1,0000 & 0,9934 & 1,0000 & 1,0000 & $+0,0066$ \\
+        Breast Cancer & 0,9240 & 0,9240 & 0,9415 & 0,9415 & 0,9591 & $+0,0175$ \\
+        Wine Quality & 0,7458 & 0,7542 & 0,7438 & 0,7812 & 0,7292 & $-0,0146$ \\
+        Car Evaluation & 0,9383 & 0,9750 & 0,8035 & 0,9692 & 0,7784 & $-0,0250$ \\
+        Synthetic Diagonal & 0,6691 & 0,7734 & 0,8201 & 0,8813 & 0,9317 & $+0,1115$ \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -159,7 +160,7 @@ W celu weryfikacji poprawności implementacji porównano wyniki autorskiego drze
 Porównanie z metodami referencyjnymi wykazało poprawność implementacji autorskiego drzewa ID3 oraz lasu losowego (ID3 vs SkTree oraz RF vs SkRF).
 \\
 
-Autorska implementacja ID3 osiąga identyczne wyniki jak \texttt{DecisionTreeClassifier} na zbiorze Mushroom (1,0000) oraz Breast Cancer (0,9240), co potwierdza poprawność algorytmu. Na zbiorze Mushroom różnice między modelem hybrydowym a referencyjnym są znikome i wynikają prawdopodobnie z fluktuacji losowych, a nie z przewagi którejkolwiek metody. Model hybrydowy przewyższa las losowy na zbiorze Breast Cancer ($+1,17$ p.p.), natomiast na zbiorach z cechami kategorycznymi (Car Evaluation) oraz wieloklasowych radzi sobie gorzej niż metoda referencyjna - co jest zgodne z oczekiwaniami dla liniowego SVM. Na zbiorze Wine Quality model hybrydowy (0,725) ustępuje referencyjnemu lasowi losowemu (0,781) o 5,6 p.p.
+Na zbiorze Mushroom, dzięki prostej separowalności, model hybrydowy osiąga perfekcyjny wynik (1,0000), nieznacznie przewyższając czysty las ID3 (0,9934), co może wynikać z efektywności SVM na tym zbiorze lub losowości modelu RF. Największą korzyść z hybrydyzacji odnotowano na zbiorze \textit{Synthetic Diagonal} (+11,15 p.p.) oraz \textit{Breast Cancer} (+1,75 p.p.), gdzie połączenie liniowego SVM z drzewami pozwoliło na lepsze modelowanie granicy decyzyjnej. Na zbiorach \textit{Wine Quality} oraz \textit{Car Evaluation}, gdzie relacje są nieliniowe bądź kategoryczne, model hybrydowy ustępuje czystemu lasowi losowemu, co sugeruje, że dodanie liniowych estymatorów SVM wprowadza tam zakłócenia.
 
 \subsection{Scenariusz 1: Wpływ udziału SVM w lesie ($p_{svm}$)}
 Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten określa, jak duża część lasu składa się z klasyfikatorów SVM (reszta to ID3). W eksperymencie ustalono liczbę estymatorów $T=50$ oraz parametr regularyzacji SVM $C=10{,}0$.
@@ -206,11 +207,11 @@ Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten ok
         \toprule
         \textbf{$p_{svm}$ [\%]} & \textbf{Średnia Dokładność} & \textbf{Odch. Std.} & \textbf{Min} & \textbf{Max} \\
         \midrule
-        0 (Czyste ID3) & 0,945 & 0,006 & 0,938 & 0,958 \\
-        20 & 0,954 & 0,005 & 0,942 & 0,965 \\
-        \textbf{50} & \textbf{0,960} & \textbf{0,005} & \textbf{0,949} & \textbf{0,968} \\
-        80 & 0,959 & 0,002 & 0,954 & 0,963 \\
-        100 (Czyste SVM) & 0,957 & 0,004 & 0,951 & 0,963 \\
+        0 (Czyste ID3) & 0,948 & 0,005 & 0,939 & 0,958 \\
+        20 & 0,958 & 0,005 & 0,949 & 0,968 \\
+        \textbf{50} & \textbf{0,965} & \textbf{0,004} & \textbf{0,958} & \textbf{0,972} \\
+        80 & 0,963 & 0,003 & 0,958 & 0,968 \\
+        100 (Czyste SVM) & 0,962 & 0,003 & 0,954 & 0,967 \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -222,11 +223,11 @@ Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten ok
         \toprule
         \textbf{$p_{svm}$ [\%]} & \textbf{Średnia Dokładność} & \textbf{Odch. Std.} & \textbf{Min} & \textbf{Max} \\
         \midrule
-        \textbf{0 (Czyste ID3)} & \textbf{0,744} & \textbf{0,010} & \textbf{0,724} & \textbf{0,767} \\
-        20 & 0,740 & 0,012 & 0,721 & 0,760 \\
-        50 & 0,728 & 0,014 & 0,698 & 0,750 \\
-        80 & 0,716 & 0,017 & 0,670 & 0,743 \\
-        100 (Czyste SVM) & 0,708 & 0,016 & 0,662 & 0,734 \\
+        \textbf{0 (Czyste ID3)} & \textbf{0,757} & \textbf{0,007} & \textbf{0,740} & \textbf{0,769} \\
+        20 & 0,753 & 0,008 & 0,739 & 0,767 \\
+        50 & 0,743 & 0,007 & 0,726 & 0,760 \\
+        80 & 0,727 & 0,011 & 0,702 & 0,749 \\
+        100 (Czyste SVM) & 0,715 & 0,011 & 0,689 & 0,733 \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -234,10 +235,10 @@ Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten ok
 \textbf{Wnioski:}
 \begin{itemize}
     \item Na zbiorze Mushroom (rys.~\ref{fig:psvm}a) wyniki są zbliżone do 1,0, a obserwowane wahania mają charakter losowy. Oznacza to, że oba typy klasyfikatorów radzą sobie z tym problemem niemal bezbłędnie.
-    \item Na zbiorze Synthetic Diagonal (rys.~\ref{fig:psvm}e) widoczna jest wyraźna przewaga SVM. Dokładność rośnie z 79,3\% (dla czystego ID3) do 96,1\% (dla czystego SVM). Wynika to z geometrii problemu -- granica decyzyjna jest ''ukośną'' hiperpłaszczyzną, co jest trywialne dla liniowego SVM, a powoduje kłopoty dla drzewa decyzyjnego.
-    \item Na zbiorze Breast Cancer (tab.~3, rys.~\ref{fig:psvm}b) hybrydyzacja przyniosła najlepsze rezultaty. Optimum uzyskano dla $p_{svm}=50\%$ (dokładność 0,960), co jest wynikiem wyższym niż dla czystego ID3 (0,945) oraz czystego SVM (0,957). Sugeruje to, że model hybrydowy skutecznie wykorzystuje różniące się własności zastosowanych klasyfikatorów: drzewo umożliwia modelowanie nieliniowych granic decyzyjnych, a SVM zapewnia liniową separację w przestrzeni cech.
-    \item Na zbiorze Wine Quality (tab.~4, rys.~\ref{fig:psvm}c) obserwujemy tendencję spadkową - najlepsze wyniki uzyskano dla czystego ID3 ($p_{svm}=0\%$, dokładność 0,744), a zwiększanie udziału SVM stopniowo pogarszało jakość klasyfikacji (spadek do 0,708 dla $p_{svm}=100\%$). Sugeruje to, że relacje w tym zbiorze są nieliniowe i lepiej modelowane przez drzewa decyzyjne niż przez liniowy SVM.
-    \item Na zbiorze Car Evaluation (rys.~\ref{fig:psvm}d) odnotowano podobny trend jak dla Wine Quality - spadek jakości wraz ze wzrostem udziału SVM (z 0,829 dla ID3 do 0,796 dla SVM). Relacje w tym zbiorze są silnie nieliniowe i kategoryczne, co faworyzuje drzewa decyzyjne.
+    \item Na zbiorze Synthetic Diagonal (rys.~\ref{fig:psvm}e) widoczna jest wyraźna przewaga SVM. Dokładność rośnie z 82,1\% (dla czystego ID3) do 98,0\% (dla czystego SVM). Wynika to z geometrii problemu -- granica decyzyjna jest ''ukośną'' hiperpłaszczyzną, co jest prostsze do zamodelowania dla liniowego SVM.
+    \item Na zbiorze Breast Cancer (tab.~3, rys.~\ref{fig:psvm}b) hybrydyzacja przyniosła najlepsze rezultaty. Optimum uzyskano dla $p_{svm}=50\%$ (dokładność 0,965), co jest wynikiem wyższym niż dla czystego ID3 (0,948) oraz czystego SVM (0,962). Sugeruje to, że model hybrydowy skutecznie wykorzystuje różniące się własności zastosowanych klasyfikatorów: drzewo umożliwia modelowanie nieliniowych granic decyzyjnych, a SVM zapewnia liniową separację w przestrzeni cech.
+    \item Na zbiorze Wine Quality (tab.~4, rys.~\ref{fig:psvm}c) obserwujemy tendencję spadkową - najlepsze wyniki uzyskano dla czystego ID3 ($p_{svm}=0\%$, dokładność 0,757), a zwiększanie udziału SVM stopniowo pogarszało jakość klasyfikacji (spadek do 0,715 dla $p_{svm}=100\%$). Sugeruje to, że relacje w tym zbiorze są nieliniowe i lepiej modelowane przez drzewa decyzyjne niż przez liniowy SVM.
+    \item Na zbiorze Car Evaluation (rys.~\ref{fig:psvm}d) odnotowano podobny trend jak dla Wine Quality - spadek jakości wraz ze wzrostem udziału SVM (z 0,831 dla ID3 do 0,794 dla SVM). Relacje w tym zbiorze są silnie nieliniowe i kategoryczne, co faworyzuje drzewa decyzyjne.
 \end{itemize}
 
 \subsection{Scenariusz 2: Wpływ liczby estymatorów ($T$)}
@@ -274,10 +275,11 @@ Zbadano wpływ rozmiaru lasu $T \in \{10, 20, 50, 100\}$ na stabilność i jako�
 
 \textbf{Wnioski:}
 \begin{itemize}
-    \item Na zbiorze Mushroom (rys.~\ref{fig:estimator_count}a) obserwujemy szybką zbieżność do optimum - już dla $T=10$ osiągamy dokładność 0,997, a dla $T=20$ wynosi ona 0,9997. Dalsze zwiększanie liczby estymatorów nie przynosi istotnej poprawy (0,9999 dla $T=50$ i $T=100$).
-    \item Na zbiorze Breast Cancer (rys.~\ref{fig:estimator_count}b) zwiększanie $T$ powoduje stopniowy wzrost dokładności (z 0,958 dla $T=10$ do 0,961 dla $T=100$) oraz zmniejszenie odchylenia standardowego (z 0,007 do 0,003), co świadczy o większej stabilności modelu.
-    \item Na zbiorze Wine Quality (rys.~\ref{fig:estimator_count}c) zwiększanie liczby estymatorów poprawia dokładność (z 0,717 dla $T=10$ do 0,744 dla $T=100$) oraz zmniejsza wariancję (odchylenie standardowe spada z 0,015 do 0,008). Na zbiorze Car Evaluation (rys.~\ref{fig:estimator_count}d) dokładność stabilizuje się na poziomie 0,812, a odchylenie standardowe spada z 0,017 do 0,010.
-    \item Stabilizacja wyników następuje w okolicy $T=50$. Dalsze zwiększanie liczby estymatorów nie poprawia istotnie wyniku, a liniowo wydłuża czas obliczeń.
+    \item Na zbiorze Mushroom (rys.~\ref{fig:estimator_count}a) obserwujemy szybką zbieżność do optimum - już dla $T=10$ osiągamy dokładność 0,997, a dla $T=50$ wynosi ona 1,000.
+    \item Na zbiorze Breast Cancer (rys.~\ref{fig:estimator_count}b) zwiększanie $T$ powoduje stopniowy wzrost dokładności (z 0,960 dla $T=10$ do 0,966 dla $T=100$) oraz zmniejszenie odchylenia standardowego.
+    \item Na zbiorze Wine Quality (rys.~\ref{fig:estimator_count}c) zwiększanie liczby estymatorów poprawia dokładność (z 0,718 dla $T=10$ do 0,744 dla $T=100$) oraz zmniejsza wariancję.
+    \item Na zbiorze Car Evaluation (rys.~\ref{fig:estimator_count}d) dokładność jest stabilna i oscyluje wokół 0,813-0,815 niezależnie od liczby estymatorów, co sugeruje, że dodawanie kolejnych modeli nie wnosi nowej wiedzy w przypadku tego zbioru.
+    \item Stabilizacja wyników następuje zazwyczaj w okolicy $T=50$. Dalsze zwiększanie liczby estymatorów nie poprawia istotnie wyniku, a liniowo wydłuża czas obliczeń.
 \end{itemize}
 
 \subsection{Scenariusz 3: Wpływ regularyzacji SVM ($C$)}
@@ -314,10 +316,10 @@ Zbadano wpływ parametru $C \in \{0{,}1; 1; 10; 50\}$ dla części SVM (przy ust
 
 \textbf{Wnioski:}
 \begin{itemize}
-    \item Na zbiorze Mushroom (rys.~\ref{fig:svm_C}a) obserwujemy wyraźny wpływ parametru $C$ - dla $C=0{,}1$ dokładność wynosi 0,999, natomiast dla $C \geq 10$ osiągamy perfekcyjną klasyfikację (1,000). Zbiór ten jest liniowo separowalny, więc większe $C$ pozwala na dokładniejsze dopasowanie hiperpłaszczyzny.
-    \item Na zbiorze Breast Cancer (rys.~\ref{fig:svm_C}b) zwiększanie $C$ poprawia wyniki - od 0,952 dla $C=0{,}1$ do 0,963 dla $C=50$. Wzrost jest stopniowy i stabilny, co sugeruje, że dane są dobrze separowalne liniowo, a słaba regularyzacja (wysokie $C$) nie prowadzi do przeuczenia.
-    \item Na zbiorach Wine Quality (rys.~\ref{fig:svm_C}c) oraz Car Evaluation (rys.~\ref{fig:svm_C}d) wpływ parametru $C$ jest minimalny - dokładność zmienia się odpowiednio w zakresie 0,703-0,710 oraz 0,791-0,796. Wynika to z faktu, że liniowy SVM nie jest w stanie dobrze zamodelować nieliniowych zależności w tych zbiorach, niezależnie od wartości regularyzacji.
-    \item Ogólnie, zbyt małe $C$ (silna regularyzacja) powoduje niedopasowanie modelu, natomiast dla zbiorów nieliniowych zwiększanie $C$ nie przynosi istotnych korzyści.
+    \item Na zbiorze Mushroom (rys.~\ref{fig:svm_C}a) dla $C \geq 10$ osiągamy perfekcyjną klasyfikację (1,000). Zbiór ten jest liniowo separowalny, więc większe $C$ pozwala na dokładniejsze dopasowanie hiperpłaszczyzny.
+    \item Na zbiorze Breast Cancer (rys.~\ref{fig:svm_C}b) zwiększanie $C$ poprawia wyniki - od 0,952 dla $C=0{,}1$ do 0,963 dla $C=50$. Wzrost jest stopniowy, co sugeruje dobrą separowalność liniową.
+    \item Na zbiorach Wine Quality (rys.~\ref{fig:svm_C}c) oraz Car Evaluation (rys.~\ref{fig:svm_C}d) wpływ parametru $C$ jest zauważalny, ale wyniki nadal pozostają na niższym poziomie (odpowiednio ok. 0,717 i 0,794). Wynika to z faktu, że liniowy SVM nie jest w stanie dobrze zamodelować nieliniowych zależności w tych zbiorach, niezależnie od wartości regularyzacji.
+    \item Ogólnie, zbyt małe $C$ (silna regularyzacja) może powodować niedopasowanie, natomiast dla zbiorów nieliniowych zwiększanie $C$ nie przynosi istotnych korzyści.
 \end{itemize}
 
 \subsection{Analiza błędów - Macierze Pomyłek (Heatmapy)}
@@ -354,10 +356,10 @@ Poniżej przedstawiono zagregowane macierze pomyłek (suma z 25 uruchomień) dla
 
 \textbf{Wnioski:}
 \begin{itemize}
-    \item Na zbiorze Mushroom (rys.~\ref{fig:heatmaps}a) obserwujemy niemal perfekcyjną klasyfikację - tylko 52 błędy na ponad 200~000 predykcji (zagregowanych z 25 uruchomień). Błędy są jednostronne tylko False Negative, co oznacza, że model sporadycznie klasyfikuje grzyby trujące jako jadalne, ale nigdy odwrotnie. Wynika to najprawdopodobniej z samej charakterystyki zbioru.
-    \item Na zbiorze Breast Cancer (rys.~\ref{fig:heatmaps}b) model popełnia więcej błędów typu FP (355 przypadków benign sklasyfikowanych jako malignant) niż FN (220 przypadków malignant sklasyfikowanych jako benign). W kontekście diagnostyki medycznej taki rozkład błędów jest akceptowalny - lepiej fałszywie zaalarmować niż przeoczyć chorobę.
-    \item Na zbiorze Wine Quality (rys.~\ref{fig:heatmaps}c) rozkład błędów jest bardziej zrównoważony. Model popełnia 6~136 błędów typu FP (low quality sklasyfikowane jako high quality) oraz 4~729 błędów typu FN (high quality sklasyfikowane jako low quality). Większa liczba FP może wynikać z tendencji modelu do klasyfikowania granicznych przypadków jako wyższą jakość.
-    \item Na zbiorze Car Evaluation (rys.~\ref{fig:heatmaps}d) najczęściej mylone są klasy ``unacc'' i ``good'' (4532 błędów) oraz ``vgood'' klasyfikowana jako ``unacc'' (1272 błędów). Klasy rzadkie (``acc'', ``vgood'') są bardzo słabo rozpoznawane - tylko 17 z 1725 przypadków ``acc'' i 143 z 1625 przypadków ``vgood'' zostało poprawnie sklasyfikowanych. Potwierdza to, że hybrydyzacja z liniowym SVM, bez wsparcia znacznym preprocessingiem danych, nie radzi sobie z niezbalansowanymi, wieloklasowymi zbiorami.
+    \item Na zbiorze Mushroom (rys.~\ref{fig:heatmaps}a) klasyfikacja jest niemal perfekcyjna. Obserwowane nieliczne błędy mają charakter marginalny i mogą wynikać z losowego doboru podzbioru cech w poszczególnych estymatorach, nie wskazując na systematyczny problem modelu.
+    \item Na zbiorze Breast Cancer (rys.~\ref{fig:heatmaps}b) model wykazuje wysoką skuteczność. Rozkład błędów fałszywie pozytywnych i fałszywie negatywnych jest zrównoważony, z lekką przewagą FP, co w zastosowaniach medycznych jest bezpieczniejszą tendencją (lepiej podejrzewać chorobę niż ją przeoczyć).
+    \item Na zbiorze Wine Quality (rys.~\ref{fig:heatmaps}c) rozkład błędów jest bardziej zrównoważony. Model popełnia 6~056 błędów typu FP (low quality sklasyfikowane jako high quality) oraz 4~237 błędów typu FN (high quality sklasyfikowane jako low quality). Większa liczba FP może wynikać z tendencji modelu do klasyfikowania granicznych przypadków jako wyższą jakość.
+    \item Na zbiorze Car Evaluation (rys.~\ref{fig:heatmaps}d) najczęściej mylone są klasy ``unacc'' i ``good'' (4732 błędów) oraz ``vgood'' klasyfikowana jako ``unacc'' (1321 błędów). Klasy rzadkie (``acc'', ``vgood'') są bardzo słabo rozpoznawane - tylko 4 z 1725 przypadków ``acc'' i 166 z 1625 przypadków ``vgood'' zostało poprawnie sklasyfikowanych. Potwierdza to, że hybrydyzacja z liniowym SVM, bez wsparcia znacznym preprocessingiem danych, nie radzi sobie z niezbalansowanymi, wieloklasowymi zbiorami.
 \end{itemize}
 
 \subsection{Analiza nadmiernego dopasowania (Overfitting)}
@@ -394,20 +396,20 @@ W celu oceny zjawiska przeuczenia porównano dokładność na zbiorze treningowy
 
 \textbf{Wnioski:}
 \begin{itemize}
-    \item Na zbiorze Mushroom (rys.~\ref{fig:overfitting}a) nie obserwujemy przeuczenia - dokładność treningowa (0,9998) i testowa (0,9997) są niemal identyczne (różnica $\Delta = 0{,}008$ p.p.). Zbiór jest łatwy do klasyfikacji i model dobrze generalizuje.
-    \item Na zbiorze Breast Cancer (rys.~\ref{fig:overfitting}b) występuje umiarkowane przeuczenie - dokładność treningowa wynosi 0,984, a testowa 0,960 (różnica $\Delta = 2{,}46$ p.p.). Jest to akceptowalny poziom, wskazujący na dobrą generalizację modelu.
-    \item Na zbiorze Wine Quality (rys.~\ref{fig:overfitting}c) występuje umiarkowane przeuczenie - dokładność treningowa wynosi 0,766, a testowa 0,728 (różnica $\Delta = 3{,}76$ p.p.). Wynik jest porównywalny z innymi zbiorami i wskazuje na typowe zachowanie modelu.
-    \item Na zbiorze Car Evaluation (rys.~\ref{fig:overfitting}d) obserwujemy również umiarkowane przeuczenie- dokładność treningowa wynosi 0,849, a testowa 0,811 (różnica $\Delta = 3{,}74$ p.p.).
-    \item Na testowanych zbiorach model hybrydowy wykazuje umiarkowane przeuczenie. Różnice między dokładnością treningową a testową mieszczą się w zakresie 2,5-3,8 p.p., co jest akceptowalne i wskazuje na dobrą zdolność generalizacji.
+    \item Na zbiorze Mushroom (rys.~\ref{fig:overfitting}a) przeuczenie nie występuje ($\Delta \approx 0$). Model idealnie generalizuje.
+    \item Na zbiorze Breast Cancer (rys.~\ref{fig:overfitting}b) różnica między zbiorem treningowym a testowym wynosi około 2,3 p.p., co jest wartością niską i akceptowalną.
+    \item Na zbiorach Wine Quality oraz Car Evaluation różnice wynoszą odpowiednio ok. 3,9 p.p. i 3,7 p.p. Jest to umiarkowany poziom przeuczenia, typowy dla metod zespołowych na trudniejszych zbiorach danych.
+    \item Ogólnie, model hybrydowy wykazał dobrą zdolność do generalizacji, z umiarkowanym przeuczeniem na bardziej złożonych zbiorach danych.
 \end{itemize}
 
 \section{Podsumowanie i wnioski końcowe}
-Zrealizowany projekt pozwolił na zbadanie właściwości hybrydowego lasu klasyfikacyjnego łączącego drzewa ID3 z klasyfikatorami SVM. Główne wnioski z badań są następujące:
-
+Zrealizowany projekt pozwolił na zbadanie właściwości hybrydowego lasu klasyfikacyjnego łączącego drzewa ID3 z klasyfikatorami SVM.
+\begin{itemize}
+    \item Uzyskane optymalne parametry modelu hybrydowego to: liczba estymatorów $T=50$, udział SVM $p_{svm}=50\%$, regularyzacja SVM $C=10{,}0$.
+\end{itemize}
 \begin{enumerate}
     \item \textbf{Czego się nauczyliśmy:}
     \begin{itemize}
-        \item Uzyskane optymalne parametry modelu hybrydowego to: liczba estymatorów $T=50$, udział SVM $p_{svm}=50\%$, regularyzacja SVM $C=10{,}0$.
         \item Jak dobór klasyfikatora bazowego zależy od charakteru danych: SVM (liniowy) preferuje zbiory (w przybliżeniu) liniowo separowalne, natomiast ID3 lepiej radzi sobie z nieliniowymi zależnościami oraz danymi kategorycznymi.
         \item Eksperyment na zbiorze \textit{Synthetic Diagonal} potwierdził przewagę liniowego SVM w problemach z ukośną, liniową granicą decyzyjną, gdzie klasyczne, drzewa decyzyjne mają trudności z aproksymacją funkcji.
         \item Jak istotna jest różnorodność estymatorów w zespole: zastosowanie \textit{Random Subspace Method} (domyślnie $m=\sqrt{M}$) okazało się kluczowe, aby modele w lesie podejmowały odmienne decyzje i żeby głosowanie miało sens.
