@@ -9,6 +9,7 @@ from sklearn.ensemble import RandomForestClassifier
 from core.models.ID3Classifier import ID3Classifier
 from core.models.HybridSVMForest import HybridSVMForest
 import os
+import numpy as np
 
 
 Loader = Callable[[], Union[Tuple[Any, Any], Tuple[Any, Any, Any]]]
@@ -16,13 +17,15 @@ DatasetConfig = Dict[str, Any]
 
 
 class VerificationRunner:
-    def __init__(self, random_state: int = 42, results_dir: str = "./results") -> None:
+    def __init__(self, random_state: int = 42, results_dir: str = "./results", n_repeats: int = 25) -> None:
         self.random_state: int = random_state
         self.results_dir: str = results_dir
+        self.n_repeats: int = n_repeats
 
     def run(self, datasets_config: List[DatasetConfig]) -> None:
         print("\n" + "=" * 90)
         print(f"{'VERIFICATION EXPERIMENT: Decision Trees & Random Forests':^90}")
+        print(f"{'(Averaged over ' + str(self.n_repeats) + ' runs)':^90}")
         print("=" * 90)
 
         results: List[Dict[str, str]] = []
@@ -35,60 +38,70 @@ class VerificationRunner:
                 loaded_data = loader()
 
                 if len(loaded_data) == 3:
-                    X_id3, X_svm, y = loaded_data
+                    X_id3_orig, X_svm_orig, y_orig = loaded_data
                 else:
-                    X_id3, y = loaded_data
-                    X_svm = X_id3
+                    X_id3_orig, y_orig = loaded_data
+                    X_svm_orig = X_id3_orig
 
-                X_id3_tr, X_id3_te, y_train, y_test = train_test_split(
-                    X_id3, y, test_size=0.3, random_state=self.random_state, stratify=y
-                )
-                X_svm_tr, X_svm_te, _, _ = train_test_split(
-                    X_svm, y, test_size=0.3, random_state=self.random_state, stratify=y
-                )
+                scores_id3 = []
+                scores_dt = []
+                scores_rf = []
+                scores_rf_sk = []
+                scores_hybrid = []
 
-                # 1. ID3 (My implementation)
-                id3 = ID3Classifier()
-                id3.fit(X_id3_tr, y_train)
-                acc_id3 = accuracy_score(y_test, id3.predict(X_id3_te))
+                for i in range(self.n_repeats):
+                    current_seed = self.random_state + i
 
-                # 2. SkTree (Reference Decision Tree)
-                dt = DecisionTreeClassifier(criterion="entropy", random_state=self.random_state)
-                dt.fit(X_id3_tr, y_train)
-                acc_dt = accuracy_score(y_test, dt.predict(X_id3_te))
+                    X_id3_tr, X_id3_te, y_train, y_test = train_test_split(
+                        X_id3_orig, y_orig, test_size=0.3, random_state=current_seed, stratify=y_orig
+                    )
+                    X_svm_tr, X_svm_te, _, _ = train_test_split(
+                        X_svm_orig, y_orig, test_size=0.3, random_state=current_seed, stratify=y_orig
+                    )
 
-                # 3. RF (My implementation with p_svm=0 - Forests only)
-                rf_my = HybridSVMForest(
-                    estimator_count=50,
-                    p_svm=0.0,
-                    random_state=self.random_state
-                )
-                rf_my.fit((X_id3_tr, X_svm_tr), y_train)
-                acc_rf = accuracy_score(y_test, rf_my.predict((X_id3_te, X_svm_te)))
+                    id3 = ID3Classifier()
+                    id3.fit(X_id3_tr, y_train)
+                    scores_id3.append(accuracy_score(y_test, id3.predict(X_id3_te)))
 
-                # 4. SkRF (Reference Random Forest)
-                rf_sk = RandomForestClassifier(n_estimators=50, random_state=self.random_state)
-                rf_sk.fit(X_id3_tr, y_train)
-                acc_rf_sk = accuracy_score(y_test, rf_sk.predict(X_id3_te))
+                    dt = DecisionTreeClassifier(criterion="entropy", random_state=current_seed)
+                    dt.fit(X_id3_tr, y_train)
+                    scores_dt.append(accuracy_score(y_test, dt.predict(X_id3_te)))
 
-                # 5. Hybrid Optimized (My implementation with T=50, p=0.5, C=10)
-                hybrid = HybridSVMForest(
-                    estimator_count=50,
-                    p_svm=0.5,
-                    C=10.0,
-                    random_state=self.random_state
-                )
-                hybrid.fit((X_id3_tr, X_svm_tr), y_train)
-                acc_hybrid = accuracy_score(y_test, hybrid.predict((X_id3_te, X_svm_te)))
+                    rf_my = HybridSVMForest(
+                        estimator_count=50,
+                        p_svm=0.0,
+                        random_state=current_seed
+                    )
+                    rf_my.fit((X_id3_tr, X_svm_tr), y_train)
+                    scores_rf.append(accuracy_score(y_test, rf_my.predict((X_id3_te, X_svm_te))))
+
+                    rf_sk = RandomForestClassifier(n_estimators=50, random_state=current_seed)
+                    rf_sk.fit(X_id3_tr, y_train)
+                    scores_rf_sk.append(accuracy_score(y_test, rf_sk.predict(X_id3_te)))
+
+                    hybrid = HybridSVMForest(
+                        estimator_count=50,
+                        p_svm=0.5,
+                        C=10.0,
+                        random_state=current_seed
+                    )
+                    hybrid.fit((X_id3_tr, X_svm_tr), y_train)
+                    scores_hybrid.append(accuracy_score(y_test, hybrid.predict((X_id3_te, X_svm_te))))
+
+                mean_id3 = np.mean(scores_id3)
+                mean_dt = np.mean(scores_dt)
+                mean_rf = np.mean(scores_rf)
+                mean_rf_sk = np.mean(scores_rf_sk)
+                mean_hybrid = np.mean(scores_hybrid)
 
                 results.append({
                     "Dataset": ds_name,
-                    "ID3": f"{acc_id3:.4f}",
-                    "SkTree": f"{acc_dt:.4f}",
-                    "RF": f"{acc_rf:.4f}",
-                    "SkRF": f"{acc_rf_sk:.4f}",
-                    "Hybrid": f"{acc_hybrid:.4f}",
-                    "H-RF Diff": f"{acc_hybrid - acc_rf:.4f}"
+                    "ID3": f"{mean_id3:.4f}",
+                    "SkTree": f"{mean_dt:.4f}",
+                    "RF": f"{mean_rf:.4f}",
+                    "SkRF": f"{mean_rf_sk:.4f}",
+                    "Hybrid": f"{mean_hybrid:.4f}",
+                    "H-RF Diff": f"{mean_hybrid - mean_rf:.4f}"
                 })
 
             except Exception as e:
@@ -97,7 +110,6 @@ class VerificationRunner:
                 traceback.print_exc()
 
         df_ver = pd.DataFrame(results)
-        # Order columns as requested
         cols = ["Dataset", "ID3", "SkTree", "RF", "SkRF", "Hybrid", "H-RF Diff"]
         df_ver = df_ver[cols]
 

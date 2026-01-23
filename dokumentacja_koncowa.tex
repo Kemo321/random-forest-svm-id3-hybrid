@@ -146,21 +146,24 @@ W celu weryfikacji poprawności implementacji porównano wyniki autorskiego drze
         \toprule
         \textbf{Zbiór danych} & \textbf{ID3} & \textbf{SkTree} & \textbf{RF} & \textbf{SkRF} & \textbf{Hybrid} & \textbf{H-RF Diff} \\
         \midrule
-        Mushroom & 1,0000 & 1,0000 & 0,9934 & 1,0000 & 1,0000 & $+0,0066$ \\
-        Breast Cancer & 0,9240 & 0,9240 & 0,9415 & 0,9415 & 0,9591 & $+0,0175$ \\
-        Wine Quality & 0,7458 & 0,7542 & 0,7438 & 0,7812 & 0,7292 & $-0,0146$ \\
-        Car Evaluation & 0,9383 & 0,9750 & 0,8035 & 0,9692 & 0,7784 & $-0,0250$ \\
-        Synthetic Diagonal & 0,6691 & 0,7734 & 0,8201 & 0,8813 & 0,9317 & $+0,1115$ \\
+        Mushroom & 0,9999 & 1,0000 & 0,9805 & 1,0000 & 0,9999 & $+0,0194$ \\
+        Breast Cancer & 0,9265 & 0,9291 & 0,9497 & 0,9553 & 0,9644 & $+0,0147$ \\
+        Wine Quality & 0,7382 & 0,7438 & 0,7550 & 0,7908 & 0,7427 & $-0,0123$ \\
+        Car Evaluation & 0,9249 & 0,9771 & 0,8321 & 0,9800 & 0,8019 & $-0,0301$ \\
+        Synthetic Diagonal & 0,6635 & 0,7498 & 0,8145 & 0,8719 & 0,9342 & $+0,1197$ \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 \textbf{Wnioski:}
 
-Porównanie z metodami referencyjnymi wykazało poprawność implementacji autorskiego drzewa ID3 oraz lasu losowego (ID3 vs SkTree oraz RF vs SkRF).
+Porównanie z metodami referencyjnymi wykazało poprawność implementacji autorskiego drzewa ID3 oraz lasu losowego (ID3 vs SkTree oraz RF vs SkRF), choć na trudniejszych zbiorach (Car Evaluation) autorski drzewo i las ustępuje optymalizowanej bibliotece Sklearn, ale wyniki ogólnie są zbliżone.
 \\
 
-Na zbiorze Mushroom, dzięki prostej separowalności, model hybrydowy osiąga perfekcyjny wynik (1,0000), nieznacznie przewyższając czysty las ID3 (0,9934), co może wynikać z efektywności SVM na tym zbiorze lub losowości modelu RF. Największą korzyść z hybrydyzacji odnotowano na zbiorze \textit{Synthetic Diagonal} (+11,15 p.p.) oraz \textit{Breast Cancer} (+1,75 p.p.), gdzie połączenie liniowego SVM z drzewami pozwoliło na lepsze modelowanie granicy decyzyjnej. Na zbiorach \textit{Wine Quality} oraz \textit{Car Evaluation}, gdzie relacje są nieliniowe bądź kategoryczne, model hybrydowy ustępuje czystemu lasowi losowemu, co sugeruje, że dodanie liniowych estymatorów SVM wprowadza tam zakłócenia.
+Model hybrydowy (Hybrid) osiąga najlepsze rezultaty na zbiorze \textit{Wisconsin Breast Cancer} (dokładność 0,9644), przewyższając zarówno autorski las losowy (0,9497), jak i biblioteczny \\ \texttt{RandomForestClassifier} (0,9553), co wskazuje na udaną synergię drzew i SVM w problemach medycznych o cechach ciągłych.
+Najbardziej spektakularną poprawę ($+11,97$ p.p.) uzyskano na zbiorze \textit{Synthetic Diagonal}, co potwierdza hipotezę, że wprowadzenie liniowych estymatorów SVM pozwala lepiej modelować ukośne granice decyzyjne.
+
+Na zbiorach o charakterystyce nieliniowej i kategorycznej (\textit{Car Evaluation}) lub trudniejszej separowalności (\textit{Wine Quality}), hybrydyzacja przyniosła pogorszenie wyników względem czystego lasu losowego (odpowiednio o 3,01 p.p. i 1,23 p.p.), co sugeruje, że wymuszanie liniowości w podprzestrzeniach cech jest tam niekorzystne.
 
 \subsection{Scenariusz 1: Wpływ udziału SVM w lesie ($p_{svm}$)}
 Zbadano wpływ parametru $p_{svm} \in \{0, 20, 50, 80, 100\}\%$. Parametr ten określa, jak duża część lasu składa się z klasyfikatorów SVM (reszta to ID3). W eksperymencie ustalono liczbę estymatorów $T=50$ oraz parametr regularyzacji SVM $C=10{,}0$.
